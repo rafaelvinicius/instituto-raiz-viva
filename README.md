@@ -13,13 +13,15 @@ instituto-raiz-viva/
 ├── index.html              Página inicial: apresentação, missão, atuação e contato
 ├── projetos.html           Quatro projetos sociais com ficha técnica
 ├── cadastro.html           Formulário de doadores e voluntários
+├── componentes.html        Guia de componentes de feedback (etiquetas, alertas, toast, modal)
 ├── README.md
 └── assets/
     ├── css/
     │   └── style.css       Folha de estilo única, com o design system no :root
     ├── js/
     │   ├── mascaras.js     Máscaras de CPF, telefone e CEP + validações
-    │   └── menu.js         Abre e fecha o menu hambúrguer no celular
+    │   ├── menu.js         Abre e fecha o menu hambúrguer no celular
+    │   └── feedback.js     Toasts e modais reutilizáveis (RaizViva.toast / abrirModal)
     └── img/
         ├── favicon.ico                   Ícone do navegador, 32x32
         ├── logo-raiz-viva.png            Logotipo, 112x112 (exibido em 56x56)
@@ -203,8 +205,36 @@ O `disabled` é aplicado pelo JavaScript; sem ele, o botão fica ativo.
 - Quando o envio falha, o JavaScript adiciona `.formulario--verificado` ao
   formulário, e os campos obrigatórios que ficaram em branco também são
   marcados, incluindo o grupo de rádio (`:has(input:invalid)`).
-- A mensagem de retorno (`.retorno--sucesso` / `.retorno--erro`) usa borda
-  lateral, fundo claro e `role="status"` para ser anunciada por leitores de tela.
+- A mensagem de erro do envio usa o componente de alerta (`.alerta--erro`), com
+  `role="status"` para ser anunciada por leitores de tela. O sucesso abre um modal.
+
+## Componentes de feedback
+
+Documentados com exemplos e HTML em `componentes.html`. Todos compartilham três
+variáveis locais, `--feedback-cor`, `--feedback-fundo` e `--feedback-icone`, e
+cada variante (`--sucesso`, `--aviso`, `--erro`; sem modificador = informação)
+só troca esses valores.
+
+| Componente | Classe | Onde é usado |
+|---|---|---|
+| Etiqueta (badge) | `.etiqueta`, `.etiqueta--sucesso` | Situação e área de cada projeto em `projetos.html` |
+| Alerta | `.alerta`, `.alerta--info`, `--sucesso`, `--aviso`, `--erro` | Prestação de contas (`projetos.html`) e erro de envio do cadastro |
+| Toast | `.alerta.toast` (criado por `RaizViva.toast()`) | Aviso de "Formulário limpo" no cadastro |
+| Modal | `dialog.modal` (aberto por `RaizViva.abrirModal()`) | Confirmação de cadastro com os próximos passos |
+
+O ícone dos alertas é um SVG aplicado com `mask`, pintado com a cor da variante.
+O modal usa o `<dialog>` nativo, que prende o foco, fecha com Esc e devolve o
+foco ao elemento de origem; o fundo usa `::backdrop`. Os toasts ficam em uma
+região `role="status"` / `aria-live="polite"` e somem depois de 5 segundos.
+Novas cores: `--sinal-escuro` (#8a5a00, 5,3:1 sobre `--sinal-claro`) e
+`--sinal-claro` (#fdf1dc).
+
+Para um desenvolvedor back-end, basta gerar o HTML da tabela acima ou chamar:
+
+```js
+RaizViva.toast('Cadastro enviado com sucesso.', 'sucesso');
+RaizViva.abrirModal('modal-sucesso');
+```
 
 ## Validações nativas do formulário
 

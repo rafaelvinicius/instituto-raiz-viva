@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Guia dos componentes visuais da plataforma do Instituto Raiz Viva: etiquetas, alertas, toasts e modal.">
+  <meta name="robots" content="noindex">
+  <meta name="author" content="Instituto Raiz Viva">
+  <title>Guia de componentes — Instituto Raiz Viva</title>
+  <link rel="icon" href="assets/img/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&amp;family=Public+Sans:wght@400;500;700&amp;display=swap">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <script src="assets/js/menu.js"></script>
+</head>
+<body>
+
+  <header class="cabecalho">
+    <div class="cabecalho__marca">
+      <img src="assets/img/logo-raiz-viva.png" alt="Instituto Raiz Viva" width="56" height="56">
+      <div>
+        <h1>Guia de componentes</h1>
+        <p class="cabecalho__lema">Etiquetas, alertas, toasts e modal usados na plataforma</p>
+      </div>
+    </div>
+
+    <nav class="menu" aria-label="Navegação principal">
+      <button class="menu__botao" type="button" aria-expanded="false" aria-controls="menu-lista">
+        <span class="menu__icone" aria-hidden="true"></span>
+        Menu
+      </button>
+      <ul id="menu-lista" class="menu__lista">
+        <li><a href="index.html">Início</a></li>
+        <li class="menu__item--sub">
+          <a href="projetos.html">Projetos</a>
+          <ul id="submenu-projetos" class="submenu">
+            <li><a href="projetos.html#rua-arborizada">Rua Arborizada</a></li>
+            <li><a href="projetos.html#viveiro-escola">Viveiro Escola</a></li>
+            <li><a href="projetos.html#calcada-fresca">Calçada Fresca</a></li>
+            <li><a href="projetos.html#cuidadores-da-quadra">Cuidadores da Quadra</a></li>
+            <li><a href="projetos.html#como-doar">Como doar</a></li>
+            <li><a href="projetos.html#voluntariado">Como ser voluntário</a></li>
+          </ul>
+        </li>
+        <li><a href="cadastro.html">Cadastre-se</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="conteudo">
+
+    <section class="intro">
+      <h2>Como usar</h2>
+      <p>
+        Esta página reúne os componentes de feedback da plataforma, com o HTML de cada um.
+        Todos usam as variáveis de cor do design system; basta trocar a classe da variante
+        (<code>--sucesso</code>, <code>--aviso</code>, <code>--erro</code> ou sem modificador
+        para informação).
+      </p>
+    </section>
+
+    <section class="guia" aria-labelledby="titulo-etiquetas">
+      <h2 id="titulo-etiquetas">Etiquetas (badges)</h2>
+      <p>Categorizam informações curtas, como a situação e a área de um projeto.</p>
+      <ul class="etiquetas vitrine" aria-label="Exemplos de etiquetas">
+        <li class="etiqueta etiqueta--sucesso">Em andamento</li>
+        <li class="etiqueta etiqueta--aviso">Vagas limitadas</li>
+        <li class="etiqueta etiqueta--erro">Encerrado</li>
+        <li class="etiqueta">Plantio</li>
+        <li class="etiqueta">Educação ambiental</li>
+      </ul>
+      <pre class="codigo"><code>&lt;ul class="etiquetas"&gt;
+  &lt;li class="etiqueta etiqueta--sucesso"&gt;Em andamento&lt;/li&gt;
+  &lt;li class="etiqueta"&gt;Plantio&lt;/li&gt;
+&lt;/ul&gt;</code></pre>
+    </section>
+
+    <section class="guia" aria-labelledby="titulo-alertas">
+      <h2 id="titulo-alertas">Alertas</h2>
+      <p>Mensagens fixas na página. Cor, ícone e título indicam o tipo.</p>
+      <div class="vitrine vitrine--coluna">
+        <div class="alerta alerta--info">
+          <div class="alerta__conteudo">
+            <p class="alerta__titulo">Informação</p>
+            <p>O recibo é emitido em até cinco dias úteis.</p>
+          </div>
+        </div>
+        <div class="alerta alerta--sucesso">
+          <div class="alerta__conteudo">
+            <p class="alerta__titulo">Sucesso</p>
+            <p>Cadastro enviado. Entramos em contato em até dois dias úteis.</p>
+          </div>
+        </div>
+        <div class="alerta alerta--aviso">
+          <div class="alerta__conteudo">
+            <p class="alerta__titulo">Atenção</p>
+            <p>Sem conexão com a internet, o endereço precisa ser preenchido manualmente.</p>
+          </div>
+        </div>
+        <div class="alerta alerta--erro">
+          <div class="alerta__conteudo">
+            <p class="alerta__titulo">Erro</p>
+            <p>Alguns campos precisam de correção antes do envio.</p>
+          </div>
+        </div>
+      </div>
+      <pre class="codigo"><code>&lt;div class="alerta alerta--sucesso" role="status"&gt;
+  &lt;div class="alerta__conteudo"&gt;
+    &lt;p class="alerta__titulo"&gt;Sucesso&lt;/p&gt;
+    &lt;p&gt;Cadastro enviado.&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+    </section>
+
+    <section class="guia" aria-labelledby="titulo-toasts">
+      <h2 id="titulo-toasts">Toasts</h2>
+      <p>
+        Notificações que aparecem no canto da tela, não bloqueiam a navegação e somem
+        depois de cinco segundos.
+      </p>
+      <div class="vitrine">
+        <button type="button" class="botao" data-toast="Cadastro enviado com sucesso." data-toast-tipo="sucesso">Toast de sucesso</button>
+        <button type="button" class="botao botao--secundario" data-toast="Formulário limpo. Você pode começar de novo." data-toast-tipo="info">Toast de informação</button>
+        <button type="button" class="botao botao--secundario" data-toast="Não foi possível consultar o CEP." data-toast-tipo="aviso">Toast de aviso</button>
+        <button type="button" class="botao botao--secundario" data-toast="Alguns campos precisam de correção." data-toast-tipo="erro">Toast de erro</button>
+      </div>
+      <pre class="codigo"><code>RaizViva.toast('Cadastro enviado com sucesso.', 'sucesso');
+
+&lt;button data-toast="Mensagem" data-toast-tipo="aviso"&gt;...&lt;/button&gt;</code></pre>
+    </section>
+
+    <section class="guia" aria-labelledby="titulo-modal">
+      <h2 id="titulo-modal">Modal</h2>
+      <p>
+        Usa o elemento <code>&lt;dialog&gt;</code> nativo: prende o foco, fecha com Esc,
+        com o botão de fechar ou com clique no fundo escurecido.
+      </p>
+      <div class="vitrine">
+        <button type="button" class="botao" data-abrir-modal="modal-exemplo">Abrir modal de exemplo</button>
+      </div>
+      <pre class="codigo"><code>&lt;button data-abrir-modal="modal-exemplo"&gt;Abrir&lt;/button&gt;
+
+&lt;dialog id="modal-exemplo" class="modal" aria-labelledby="titulo"&gt;
+  &lt;div class="modal__conteudo"&gt;
+    &lt;div class="modal__cabecalho"&gt;
+      &lt;h2 id="titulo" class="modal__titulo"&gt;Título&lt;/h2&gt;
+      &lt;button class="botao-fechar" data-fechar-modal aria-label="Fechar"&gt;&amp;times;&lt;/button&gt;
+    &lt;/div&gt;
+    ...
+  &lt;/div&gt;
+&lt;/dialog&gt;</code></pre>
+    </section>
+
+  </main>
+
+  <footer class="rodape">
+    <p class="rodape__nome">Instituto Raiz Viva</p>
+    <p>CNPJ 12.345.678/0001-90 — organização da sociedade civil sem fins lucrativos.</p>
+
+    <nav aria-label="Links do rodapé">
+      <ul>
+        <li><a href="index.html">Início</a></li>
+        <li><a href="projetos.html">Projetos</a></li>
+        <li><a href="cadastro.html">Cadastre-se</a></li>
+        <li><a href="mailto:contato@raizviva.org.br">Contato</a></li>
+      </ul>
+    </nav>
+
+    <p><small>&copy; 2026 Instituto Raiz Viva. Todos os direitos reservados.</small></p>
+  </footer>
+
+  <dialog id="modal-exemplo" class="modal" aria-labelledby="modal-exemplo-titulo">
+    <div class="modal__conteudo">
+      <div class="modal__cabecalho">
+        <h2 id="modal-exemplo-titulo" class="modal__titulo">Cadastro recebido</h2>
+        <button type="button" class="botao-fechar" data-fechar-modal aria-label="Fechar">&times;</button>
+      </div>
+      <p>Obrigado por se cadastrar. Entramos em contato em até dois dias úteis.</p>
+      <ul class="etiquetas">
+        <li class="etiqueta etiqueta--sucesso">Cadastro ativo</li>
+      </ul>
+      <div class="modal__rodape">
+        <button type="button" class="botao" data-fechar-modal>Fechar</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="assets/js/feedback.js"></script>
+</body>
+</html>

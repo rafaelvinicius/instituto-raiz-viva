@@ -182,6 +182,7 @@
 
   if (formulario) {
     var botaoEnviar = formulario.querySelector('button[type="submit"]');
+    var limpezaAutomatica = false;
     var campoTermos = document.getElementById('termos');
 
     // O envio só é liberado depois do aceite da política de privacidade.
@@ -210,23 +211,31 @@
         formulario.reportValidity();
         if (retorno) {
           retorno.textContent = 'Alguns campos precisam de correção antes do envio.';
-          retorno.className = 'retorno retorno--erro';
+          retorno.className = 'retorno alerta alerta--erro';
         }
         return;
       }
 
-      // reset() dispara o evento "reset", que limpa a mensagem de retorno.
-      // Por isso o formulário é limpo antes de a mensagem de sucesso aparecer.
+      // O reset feito pelo próprio envio não deve gerar o toast de "limpo"
+      limpezaAutomatica = true;
       formulario.reset();
+      limpezaAutomatica = false;
 
-      if (retorno) {
+      // Sucesso: modal de confirmação com os próximos passos
+      if (window.RaizViva) {
+        window.RaizViva.abrirModal('modal-sucesso');
+      } else if (retorno) {
         retorno.textContent = 'Cadastro enviado. Entramos em contato em até dois dias úteis.';
-        retorno.className = 'retorno retorno--sucesso';
+        retorno.className = 'retorno alerta alerta--sucesso';
       }
     });
 
     formulario.addEventListener('reset', function () {
       formulario.classList.remove('formulario--verificado');
+      // Limpeza pedida pela pessoa: aviso discreto em toast
+      if (!limpezaAutomatica && window.RaizViva) {
+        window.RaizViva.toast('Formulário limpo. Você pode começar de novo.', 'info');
+      }
       // O evento acontece antes de os campos serem limpos
       setTimeout(atualizarBotaoEnviar, 0);
       if (retorno) {

@@ -28,6 +28,8 @@
   /* ---- Cores de feedback ---- */
   --erro:         #a32c1c;
   --erro-claro:   #fbeae7;
+  --sinal-escuro: #8a5a00;  /* ícone e texto de aviso sobre fundo claro */
+  --sinal-claro:  #fdf1dc;  /* fundo de aviso                          */
 
   /* ---- Foco: redefinido nas áreas de fundo escuro ---- */
   --foco:         var(--folha-forte);
@@ -127,6 +129,11 @@ h1, h2, h3 {
 h1 { font-size: var(--tamanho-titulo); }
 h2 { font-size: var(--tamanho-grande); }
 h3 { font-size: var(--tamanho-medio); }
+
+/* Subtítulos dentro das seções: separa do bloco anterior */
+main section > h3 {
+  margin-top: var(--espaco-5);
+}
 
 p {
   max-width: 62ch;
@@ -797,23 +804,276 @@ textarea:user-invalid,
   flex: 1 1 100%;
 }
 
+/* ---------- Componentes de feedback ------------------------------ */
+/* Etiquetas, alertas, toasts e modal compartilham as mesmas variáveis
+   de cor. Cada variante só troca --feedback-cor, --feedback-fundo e
+   --feedback-icone, então um novo tipo exige apenas uma regra. */
+
+.alerta,
+.etiqueta {
+  --feedback-cor: var(--folha-forte);
+  --feedback-fundo: var(--papel-alto);
+  --feedback-icone: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 11v6M12 7.5v.01'/%3E%3C/svg%3E");
+}
+
+.alerta--sucesso,
+.etiqueta--sucesso {
+  --feedback-cor: var(--folha-forte);
+  --feedback-fundo: var(--folha-clara);
+  --feedback-icone: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M7.5 12.5l3 3 6-6.5'/%3E%3C/svg%3E");
+}
+
+.alerta--aviso,
+.etiqueta--aviso {
+  --feedback-cor: var(--sinal-escuro);
+  --feedback-fundo: var(--sinal-claro);
+  --feedback-icone: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3l10 18H2z'/%3E%3Cpath d='M12 10v5M12 18v.01'/%3E%3C/svg%3E");
+}
+
+.alerta--erro,
+.etiqueta--erro {
+  --feedback-cor: var(--erro);
+  --feedback-fundo: var(--erro-claro);
+  --feedback-icone: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M15 9l-6 6M9 9l6 6'/%3E%3C/svg%3E");
+}
+
+/* ---- Etiquetas (badges) ---- */
+.etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+  list-style: none;
+  margin: 0 0 var(--espaco-4);
+  padding: 0;
+}
+
+.etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  padding: var(--espaco-1) var(--espaco-3);
+  border: 1px solid var(--borda);
+  border-radius: 999px;
+  background-color: var(--papel);
+  color: var(--tinta-fraca);
+  font-size: var(--tamanho-pequeno);
+  font-weight: var(--peso-negrito);
+  line-height: 1.3;
+}
+
+.etiqueta--sucesso,
+.etiqueta--aviso,
+.etiqueta--erro {
+  border-color: transparent;
+  background-color: var(--feedback-fundo);
+  color: var(--feedback-cor);
+}
+
+/* Ponto de status antes do texto */
+.etiqueta--sucesso::before,
+.etiqueta--aviso::before,
+.etiqueta--erro::before {
+  content: "";
+  width: 0.5em;
+  height: 0.5em;
+  border-radius: 50%;
+  background-color: currentColor;
+}
+
+/* ---- Alertas ---- */
+.alerta {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espaco-3);
+  padding: var(--espaco-3) var(--espaco-4);
+  border: 1px solid var(--borda);
+  border-left: 4px solid var(--feedback-cor);
+  border-radius: var(--raio);
+  background-color: var(--feedback-fundo);
+  color: var(--tinta);
+}
+
+/* Ícone desenhado com máscara: herda a cor da variante */
+.alerta::before {
+  content: "";
+  flex: 0 0 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.2rem;
+  background-color: var(--feedback-cor);
+  -webkit-mask: var(--feedback-icone) center / contain no-repeat;
+  mask: var(--feedback-icone) center / contain no-repeat;
+}
+
+.alerta__conteudo {
+  flex: 1;
+}
+
+.alerta p {
+  margin: 0;
+}
+
+.alerta__titulo {
+  color: var(--feedback-cor);
+  font-weight: var(--peso-negrito);
+}
+
+/* Mensagem de retorno do formulário: some quando está vazia */
 .retorno {
   margin-top: var(--espaco-4);
-  padding: 0;
   font-weight: var(--peso-medio);
 }
 
-.retorno--sucesso {
-  padding: var(--espaco-3) var(--espaco-4);
-  background-color: var(--folha-clara);
-  border-left: 4px solid var(--folha);
+.retorno:empty {
+  display: none;
 }
 
-.retorno--erro {
-  padding: var(--espaco-3) var(--espaco-4);
-  background-color: var(--erro-claro);
-  border-left: 4px solid var(--erro);
-  color: var(--erro);
+/* ---- Botão de fechar (toast e modal) ---- */
+.botao-fechar {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin: calc(var(--espaco-2) * -1) calc(var(--espaco-2) * -1) 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--raio);
+  background-color: transparent;
+  color: var(--tinta-fraca);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.botao-fechar:hover {
+  background-color: var(--papel);
+  color: var(--tinta);
+}
+
+/* ---- Toasts: alertas flutuantes que somem sozinhos ---- */
+.toasts {
+  position: fixed;
+  right: var(--espaco-4);
+  bottom: var(--espaco-4);
+  left: var(--espaco-4);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  pointer-events: none;
+}
+
+.toast {
+  align-items: center;
+  box-shadow: 0 8px 24px rgb(22 36 27 / 0.2);
+  pointer-events: auto;
+  animation: toast-entrar 0.25s ease-out;
+}
+
+.toast::before {
+  margin-top: 0;
+}
+
+.toast .botao-fechar {
+  margin: calc(var(--espaco-2) * -1) calc(var(--espaco-3) * -1) calc(var(--espaco-2) * -1) 0;
+}
+
+.toast--saindo {
+  opacity: 0;
+  transform: translateY(0.75rem);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+@keyframes toast-entrar {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+}
+
+@media (min-width: 640px) {
+  .toasts {
+    left: auto;
+    width: 24rem;
+  }
+}
+
+/* ---- Modal (elemento dialog nativo) ---- */
+.modal {
+  width: min(32rem, calc(100% - 2rem));
+  padding: 0;
+  border: 0;
+  border-top: 4px solid var(--folha);
+  border-radius: var(--raio);
+  background-color: var(--papel-alto);
+  color: var(--tinta);
+  box-shadow: 0 20px 48px rgb(22 36 27 / 0.3);
+}
+
+.modal[open] {
+  animation: modal-entrar 0.25s ease-out;
+}
+
+.modal::backdrop {
+  background-color: rgb(22 36 27 / 0.6);
+}
+
+.modal__conteudo {
+  padding: var(--espaco-5);
+}
+
+.modal__cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--espaco-3);
+  margin-bottom: var(--espaco-3);
+}
+
+.modal__titulo {
+  margin: 0;
+}
+
+.modal__rodape {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--espaco-3);
+  margin-top: var(--espaco-5);
+}
+
+@keyframes modal-entrar {
+  from {
+    opacity: 0;
+    transform: translateY(1rem) scale(0.98);
+  }
+}
+
+/* ---------- Guia de componentes ---------------------------------- */
+
+.vitrine {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-3);
+  align-items: center;
+}
+
+.vitrine--coluna {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.codigo {
+  overflow-x: auto;
+  margin: var(--espaco-4) 0 0;
+  padding: var(--espaco-4);
+  border-radius: var(--raio);
+  background-color: var(--tinta);
+  color: var(--papel);
+  font-size: var(--tamanho-pequeno);
+  line-height: 1.5;
 }
 
 /* ---------- Rodapé ----------------------------------------------- */
@@ -931,7 +1191,7 @@ textarea:user-invalid,
 
   .projeto > figure {
     grid-column: 1 / span 5;
-    grid-row: 1 / span 3;
+    grid-row: 1 / span 4;
   }
 }
 
