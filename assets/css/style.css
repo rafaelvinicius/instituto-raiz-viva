@@ -1,0 +1,516 @@
+/* ==================================================================
+   Instituto Raiz Viva — folha de estilo única
+   ================================================================== */
+
+:root {
+  --tinta:      #16241b;
+  --tinta-fraca:#4b5b50;
+  --papel:      #f2f4ef;
+  --papel-alto: #ffffff;
+  --folha:      #2e6b4f;
+  --folha-forte:#1d4733;
+  --sinal:      #d98b0a;
+  --borda:      #d3dacd;
+  --erro:       #a32c1c;
+
+  --serif: "Fraunces", Georgia, "Times New Roman", serif;
+  --sans:  "Public Sans", -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+
+  --largura: 68rem;
+  --raio: 4px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: var(--papel);
+  color: var(--tinta);
+  font-family: var(--sans);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+picture {
+  display: block;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+a {
+  color: var(--folha-forte);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+a:hover {
+  color: var(--sinal);
+}
+
+:focus-visible {
+  outline: 3px solid var(--sinal);
+  outline-offset: 2px;
+}
+
+abbr[title] {
+  color: var(--erro);
+  text-decoration: none;
+  cursor: help;
+}
+
+/* ---------- Tipografia ------------------------------------------- */
+
+h1, h2, h3 {
+  font-family: var(--serif);
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 0 0 0.5em;
+}
+
+h1 { font-size: clamp(1.6rem, 3.6vw, 2.3rem); }
+h2 { font-size: clamp(1.35rem, 2.6vw, 1.75rem); }
+h3 { font-size: 1.15rem; }
+
+p {
+  max-width: 62ch;
+}
+
+/* ---------- Cabeçalho -------------------------------------------- */
+
+.cabecalho {
+  background-color: var(--folha-forte);
+  color: var(--papel);
+  padding: 1.75rem 1.25rem 0;
+}
+
+.cabecalho__marca {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  max-width: var(--largura);
+  margin: 0 auto;
+}
+
+.cabecalho__lema {
+  margin: 0;
+  color: #c6d8cb;
+  font-size: 0.95rem;
+}
+
+.cabecalho a {
+  color: var(--papel);
+}
+
+.menu {
+  max-width: var(--largura);
+  margin: 1.5rem auto 0;
+}
+
+.menu ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.menu a {
+  display: block;
+  padding: 0.6rem 1rem;
+  text-decoration: none;
+  border-bottom: 3px solid transparent;
+}
+
+.menu a:hover {
+  border-bottom-color: var(--sinal);
+  color: var(--papel);
+}
+
+.menu a[aria-current="page"] {
+  border-bottom-color: var(--sinal);
+  font-weight: 700;
+}
+
+/* ---------- Estrutura geral do conteúdo -------------------------- */
+
+main {
+  max-width: var(--largura);
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 3rem;
+}
+
+main > section,
+main > aside {
+  margin-bottom: 3rem;
+}
+
+/* ---------- Destaque da página inicial --------------------------- */
+
+.destaque__figura {
+  margin: 0 0 1.5rem;
+}
+
+.destaque__figura img {
+  width: 100%;
+  border-radius: var(--raio);
+}
+
+figcaption {
+  margin-top: 0.5rem;
+  color: var(--tinta-fraca);
+  font-size: 0.875rem;
+}
+
+.destaque__texto {
+  font-size: 1.1rem;
+}
+
+.numeros {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 1px;
+  margin: 2rem 0 0;
+  background-color: var(--borda);
+  border: 1px solid var(--borda);
+}
+
+.numeros > div {
+  background-color: var(--papel-alto);
+  padding: 1rem 1.25rem;
+}
+
+.numeros dt {
+  color: var(--tinta-fraca);
+  font-size: 0.85rem;
+}
+
+.numeros dd {
+  margin: 0.15rem 0 0;
+  font-family: var(--serif);
+  font-size: 1.9rem;
+  line-height: 1.1;
+  color: var(--folha);
+}
+
+/* ---------- Listas e cartões ------------------------------------- */
+
+.lista-valores {
+  padding-left: 1.1rem;
+  max-width: 62ch;
+}
+
+.lista-valores li {
+  margin-bottom: 0.4rem;
+}
+
+.atuacao {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1.25rem;
+}
+
+.atuacao > h2 {
+  grid-column: 1 / -1;
+  margin-bottom: 0;
+}
+
+.cartao {
+  background-color: var(--papel-alto);
+  border: 1px solid var(--borda);
+  border-top: 4px solid var(--folha);
+  padding: 1.25rem;
+}
+
+.cartao h3 {
+  margin-top: 0;
+}
+
+.cartao p {
+  margin-bottom: 0;
+}
+
+/* ---------- Projetos --------------------------------------------- */
+
+.projeto {
+  background-color: var(--papel-alto);
+  border: 1px solid var(--borda);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.projeto figure {
+  margin: 0 0 1rem;
+}
+
+.projeto img {
+  width: 100%;
+  border-radius: var(--raio);
+}
+
+.ficha {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 0.75rem 1.5rem;
+  margin: 1.25rem 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--borda);
+}
+
+.ficha dt {
+  color: var(--tinta-fraca);
+  font-size: 0.8rem;
+}
+
+.ficha dd {
+  margin: 0;
+  font-weight: 500;
+}
+
+/* ---------- Bloco de apoio --------------------------------------- */
+
+.apoie {
+  background-color: var(--folha-forte);
+  color: var(--papel);
+  padding: 1.75rem;
+}
+
+.apoie h2 {
+  margin-top: 0;
+}
+
+.botao {
+  display: inline-block;
+  background-color: var(--sinal);
+  color: var(--tinta);
+  font-weight: 700;
+  font-size: 1rem;
+  font-family: var(--sans);
+  padding: 0.7rem 1.4rem;
+  border: none;
+  border-radius: var(--raio);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.botao:hover {
+  background-color: #b87406;
+  color: var(--tinta);
+}
+
+.botao--secundario {
+  background-color: transparent;
+  border: 2px solid var(--folha);
+  color: var(--folha-forte);
+}
+
+.botao--secundario:hover {
+  background-color: var(--folha);
+  color: var(--papel);
+}
+
+/* ---------- Contato ---------------------------------------------- */
+
+address {
+  font-style: normal;
+}
+
+/* ---------- Formulário ------------------------------------------- */
+
+form {
+  max-width: 44rem;
+}
+
+fieldset {
+  border: 1px solid var(--borda);
+  background-color: var(--papel-alto);
+  padding: 1.5rem;
+  margin: 0 0 1.5rem;
+}
+
+legend {
+  font-family: var(--serif);
+  font-size: 1.15rem;
+  font-weight: 600;
+  padding: 0 0.5rem;
+}
+
+.campo {
+  margin-bottom: 1.25rem;
+}
+
+.campo--curto {
+  max-width: 16rem;
+}
+
+label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 0.3rem;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  font-family: var(--sans);
+  font-size: 1rem;
+  color: var(--tinta);
+  background-color: var(--papel-alto);
+  border: 1px solid #9aa79d;
+  border-radius: var(--raio);
+  padding: 0.6rem 0.7rem;
+}
+
+textarea {
+  resize: vertical;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--folha);
+}
+
+input:user-invalid,
+select:user-invalid,
+textarea:user-invalid {
+  border-color: var(--erro);
+  background-color: #fdf3f1;
+}
+
+.ajuda {
+  display: block;
+  margin-top: 0.3rem;
+  color: var(--tinta-fraca);
+  font-size: 0.85rem;
+}
+
+.grupo-opcoes {
+  background-color: transparent;
+  margin-bottom: 1.5rem;
+}
+
+.grupo-opcoes legend {
+  font-family: var(--sans);
+  font-size: 1rem;
+}
+
+.opcao {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+}
+
+.opcao input {
+  width: auto;
+  margin-top: 0.35rem;
+  accent-color: var(--folha);
+}
+
+.opcao label {
+  margin-bottom: 0;
+  font-weight: 400;
+}
+
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.retorno {
+  margin-top: 1rem;
+  padding: 0;
+  font-weight: 500;
+}
+
+.retorno--sucesso {
+  padding: 0.85rem 1rem;
+  background-color: #e3f0e6;
+  border-left: 4px solid var(--folha);
+}
+
+.retorno--erro {
+  padding: 0.85rem 1rem;
+  background-color: #fbeae7;
+  border-left: 4px solid var(--erro);
+  color: var(--erro);
+}
+
+/* ---------- Rodapé ----------------------------------------------- */
+
+.rodape {
+  background-color: var(--tinta);
+  color: #c6d0c8;
+  padding: 2.5rem 1.25rem;
+}
+
+.rodape > * {
+  max-width: var(--largura);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.rodape__nome {
+  font-family: var(--serif);
+  font-size: 1.25rem;
+  color: var(--papel);
+  margin-bottom: 0.25rem;
+}
+
+.rodape a {
+  color: var(--papel);
+}
+
+.rodape a:hover {
+  color: var(--sinal);
+}
+
+.rodape ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  list-style: none;
+  padding: 0;
+  margin: 1.25rem auto;
+}
+
+/* ---------- Responsividade --------------------------------------- */
+
+@media (max-width: 40rem) {
+  .cabecalho__marca {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .menu a {
+    padding: 0.5rem 0.75rem;
+  }
+
+  fieldset {
+    padding: 1rem;
+  }
+
+  .apoie {
+    padding: 1.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
