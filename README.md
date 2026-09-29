@@ -105,6 +105,43 @@ Escala modular de base 4px, usada em todas as margens, paddings e gaps:
 
 Estrutura: `--largura` (68rem, largura máxima do conteúdo) e `--raio` (4px).
 
+## Layout: grid de 12 colunas
+
+O layout macro usa CSS Grid com 12 colunas, definido pelas variáveis
+`--grade-colunas` (12) e `--grade-espaco` (espaço entre colunas):
+
+```css
+grid-template-columns: repeat(var(--grade-colunas), minmax(0, 1fr));
+column-gap: var(--grade-espaco);
+```
+
+A mesma grade é aplicada ao `main` das três páginas e aos blocos internos
+`.destaque`, `.numeros`, `.atuacao`, `.projetos` e aos `fieldset` do formulário.
+O `minmax(0, 1fr)` impede que conteúdo longo force uma coluna a crescer além da tela.
+
+A folha segue a abordagem **mobile first**: sem media query, todo filho da grade
+ocupa as 12 colunas (`grid-column: 1 / -1`). Cada breakpoint usa `min-width` e
+só redistribui as colunas. A ordem visual acompanha a ordem do HTML, para que a
+navegação por teclado e o leitor de tela sigam a mesma sequência vista na tela.
+
+### Breakpoints
+
+| # | Largura | Dispositivo | O que muda |
+|---|---|---|---|
+| — | até 479px | Celulares | Uma coluna; botões do formulário com largura total |
+| 1 | `min-width: 480px` | Celulares grandes | Números de impacto em 2 × 2 (6 colunas cada); botões lado a lado |
+| 2 | `min-width: 640px` | Tablets em retrato | Logo e título em linha; campos do formulário lado a lado (6, 8 e 4 colunas) |
+| 3 | `min-width: 768px` | Tablets em paisagem | Gap maior; números em 4 colunas (3 cada); cartões de atuação em 3 colunas (4 cada); projeto com foto em 5 colunas e texto em 7 |
+| 4 | `min-width: 1024px` | Desktop | Início: foto 7 + texto 5, missão 8, apoio 5 + contato 7. Projetos: 2 por linha (6 cada), doação 6 + voluntariado 6. Cadastro: introdução 4 + formulário 8 |
+| 5 | `min-width: 1280px` | Telas largas | `--largura` de 68rem para 76rem e gap de 32px |
+
+Classes modificadoras usadas no HTML para posicionar elementos na grade:
+`.apoie--lateral` (index), `.intro--lateral` (cadastro) e, nos campos do
+formulário, `.campo--metade` (6 colunas), `.campo--longo` (8) e `.campo--curto` (4).
+
+O layout foi conferido em 360, 480, 640, 768, 1024, 1280 e 1440px, sem rolagem
+horizontal em nenhuma das três páginas.
+
 ## Validações nativas do formulário
 
 | Campo | Validação |
