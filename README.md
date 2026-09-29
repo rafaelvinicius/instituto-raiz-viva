@@ -18,7 +18,8 @@ instituto-raiz-viva/
     ├── css/
     │   └── style.css       Folha de estilo única, com o design system no :root
     ├── js/
-    │   └── mascaras.js     Máscaras de CPF, telefone e CEP + validações
+    │   ├── mascaras.js     Máscaras de CPF, telefone e CEP + validações
+    │   └── menu.js         Abre e fecha o menu hambúrguer no celular
     └── img/
         ├── favicon.ico                   Ícone do navegador, 32x32
         ├── logo-raiz-viva.png            Logotipo, 112x112 (exibido em 56x56)
@@ -141,6 +142,42 @@ formulário, `.campo--metade` (6 colunas), `.campo--longo` (8) e `.campo--curto`
 
 O layout foi conferido em 360, 480, 640, 768, 1024, 1280 e 1440px, sem rolagem
 horizontal em nenhuma das três páginas.
+
+## Componentes com Flexbox
+
+O Grid organiza as áreas da página; o Flexbox alinha os elementos dentro de cada
+componente, em um único eixo.
+
+| Componente | Seletor | Propriedades principais |
+|---|---|---|
+| Marca do cabeçalho | `.cabecalho__marca` | `flex-direction: column` no celular e `row` a partir de 640px; `align-items`; `gap` |
+| Menu principal | `.menu ul` | `display: flex`; `flex-wrap: wrap`; `gap` |
+| Cartão de projeto | `.projeto` (a partir de 1024px) | `flex-direction: column`; `flex-grow: 1` no parágrafo, que empurra a ficha técnica para a base e alinha os cartões lado a lado |
+| Opções do formulário | `.opcao` | `align-items: flex-start` entre o `input` e o `label`; `gap` |
+| Botões do formulário | `.acoes` | `flex-wrap: wrap`; `flex: 1 1 100%` nos botões no celular e `flex: 0 0 auto` a partir de 480px |
+| Links do rodapé | `.rodape ul` | `display: flex`; `flex-wrap: wrap`; `gap` |
+
+## Menu de navegação
+
+O menu principal é o mesmo nas três páginas e muda de formato em 768px.
+
+**Até 767px (hambúrguer):** um `button.menu__botao` com ícone de três barras e o
+texto "Menu" abre um painel (`.menu__lista`) posicionado com `position: absolute`
+logo abaixo do cabeçalho. O painel fica escondido com `opacity: 0`,
+`visibility: hidden` e `transform: translateY(-0.5rem)` e aparece com
+`transition` quando o botão tem `aria-expanded="true"`. O ícone vira um X pelos
+pseudo-elementos `::before` e `::after`. Os itens do submenu aparecem abertos e
+recuados sob "Projetos".
+
+**A partir de 768px (dropdown):** o botão some e a lista volta a ser horizontal
+(`flex-direction: row`). O submenu de "Projetos" (`.submenu`) usa
+`position: absolute` e fica escondido até o item receber `:hover` ou
+`:focus-within`, o que permite abri-lo com o mouse ou com a tecla Tab.
+
+O `menu.js` adiciona a classe `js` ao `<html>`, alterna o `aria-expanded` do botão
+e fecha o painel com Esc, com clique fora do menu ou ao escolher um link. Sem
+JavaScript, a classe não é adicionada e o menu fica sempre visível. As transições
+são desligadas por `prefers-reduced-motion`.
 
 ## Validações nativas do formulário
 

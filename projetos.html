@@ -11,6 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&amp;family=Public+Sans:wght@400;500;700&amp;display=swap">
   <link rel="stylesheet" href="assets/css/style.css">
+  <script src="assets/js/menu.js"></script>
 </head>
 <body>
 
@@ -24,9 +25,23 @@
     </div>
 
     <nav class="menu" aria-label="Navegação principal">
-      <ul>
+      <button class="menu__botao" type="button" aria-expanded="false" aria-controls="menu-lista">
+        <span class="menu__icone" aria-hidden="true"></span>
+        Menu
+      </button>
+      <ul id="menu-lista" class="menu__lista">
         <li><a href="index.html">Início</a></li>
-        <li><a href="projetos.html" aria-current="page">Projetos</a></li>
+        <li class="menu__item--sub">
+          <a href="projetos.html" aria-current="page">Projetos</a>
+          <ul id="submenu-projetos" class="submenu">
+            <li><a href="projetos.html#rua-arborizada">Rua Arborizada</a></li>
+            <li><a href="projetos.html#viveiro-escola">Viveiro Escola</a></li>
+            <li><a href="projetos.html#calcada-fresca">Calçada Fresca</a></li>
+            <li><a href="projetos.html#cuidadores-da-quadra">Cuidadores da Quadra</a></li>
+            <li><a href="projetos.html#como-doar">Como doar</a></li>
+            <li><a href="projetos.html#voluntariado">Como ser voluntário</a></li>
+          </ul>
+        </li>
         <li><a href="cadastro.html">Cadastre-se</a></li>
       </ul>
     </nav>
@@ -45,7 +60,7 @@
     <section class="projetos">
       <h2>Projetos em andamento</h2>
 
-      <article class="projeto">
+      <article class="projeto" id="rua-arborizada">
         <h3>Rua Arborizada</h3>
         <figure>
           <picture>
@@ -68,7 +83,7 @@
         </dl>
       </article>
 
-      <article class="projeto">
+      <article class="projeto" id="viveiro-escola">
         <h3>Viveiro Escola</h3>
         <figure>
           <picture>
@@ -91,7 +106,7 @@
         </dl>
       </article>
 
-      <article class="projeto">
+      <article class="projeto" id="calcada-fresca">
         <h3>Calçada Fresca</h3>
         <figure>
           <picture>
@@ -114,7 +129,7 @@
         </dl>
       </article>
 
-      <article class="projeto">
+      <article class="projeto" id="cuidadores-da-quadra">
         <h3>Cuidadores da Quadra</h3>
         <figure>
           <picture>
@@ -138,7 +153,7 @@
       </article>
     </section>
 
-    <section class="doacao">
+    <section class="doacao" id="como-doar">
       <h2>Como doar</h2>
       <p>
         A doação é mensal e pode ser destinada a um projeto específico ou distribuída
@@ -159,7 +174,7 @@
       </p>
     </section>
 
-    <section class="voluntariado">
+    <section class="voluntariado" id="voluntariado">
       <h2>Como ser voluntário</h2>
       <p>
         Não é preciso experiência prévia. Toda função tem treinamento no próprio dia e

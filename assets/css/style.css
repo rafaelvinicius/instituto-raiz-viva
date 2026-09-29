@@ -160,18 +160,31 @@ p {
   color: var(--papel);
 }
 
-.menu {
-  max-width: var(--largura);
-  margin: var(--espaco-5) auto 0;
+/* ---------- Menu principal --------------------------------------- */
+/* Mobile first: até 767px o menu é um painel aberto pelo botão
+   hambúrguer. A partir de 768px volta a ser horizontal e o item
+   "Projetos" ganha um submenu dropdown. Sem JavaScript, o botão
+   não aparece e a lista fica sempre visível. */
+
+.cabecalho {
+  position: relative;
 }
 
-.menu ul {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--espaco-1);
+.menu {
+  max-width: var(--largura);
+  margin: var(--espaco-4) auto 0;
+}
+
+.menu__lista,
+.submenu {
   list-style: none;
   margin: 0;
   padding: 0;
+}
+
+.menu__lista {
+  display: flex;
+  flex-direction: column;
 }
 
 .menu a {
@@ -189,6 +202,194 @@ p {
 .menu a[aria-current="page"] {
   border-bottom-color: var(--sinal);
   font-weight: var(--peso-negrito);
+}
+
+/* No celular o submenu aparece aberto, recuado sob "Projetos" */
+.submenu {
+  padding-left: var(--espaco-4);
+  border-left: 2px solid var(--folha);
+  margin-left: var(--espaco-3);
+}
+
+/* ---- Botão hambúrguer ---- */
+.menu__botao {
+  display: none;
+}
+
+.js .menu__botao {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  min-height: 2.75rem;
+  margin-bottom: var(--espaco-3);
+  padding: var(--espaco-2) var(--espaco-3);
+  background-color: transparent;
+  border: 2px solid var(--papel-suave);
+  border-radius: var(--raio);
+  color: var(--papel);
+  font-family: var(--sans);
+  font-size: var(--tamanho-base);
+  font-weight: var(--peso-negrito);
+  cursor: pointer;
+}
+
+.menu__botao:hover {
+  border-color: var(--sinal);
+}
+
+/* Três barras: o span é a do meio; ::before e ::after, as outras */
+.menu__icone,
+.menu__icone::before,
+.menu__icone::after {
+  display: block;
+  width: 1.25rem;
+  height: 2px;
+  background-color: currentColor;
+  transition: transform 0.25s ease, background-color 0.25s ease;
+}
+
+.menu__icone {
+  position: relative;
+}
+
+.menu__icone::before,
+.menu__icone::after {
+  content: "";
+  position: absolute;
+  left: 0;
+}
+
+.menu__icone::before {
+  top: -6px;
+}
+
+.menu__icone::after {
+  top: 6px;
+}
+
+/* Menu aberto: as barras formam um X */
+.menu__botao[aria-expanded="true"] .menu__icone {
+  background-color: transparent;
+}
+
+.menu__botao[aria-expanded="true"] .menu__icone::before {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.menu__botao[aria-expanded="true"] .menu__icone::after {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+/* ---- Painel do menu mobile ---- */
+.js .menu__lista {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  padding: var(--espaco-2) var(--espaco-4) var(--espaco-4);
+  background-color: var(--folha-forte);
+  border-top: 1px solid var(--folha);
+  box-shadow: 0 8px 16px rgb(0 0 0 / 0.25);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-0.5rem);
+  transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s linear 0.25s;
+}
+
+.js .menu__botao[aria-expanded="true"] + .menu__lista {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s;
+}
+
+/* ---- Desktop: menu horizontal com dropdown ---- */
+@media (min-width: 768px) {
+  .js .menu__botao {
+    display: none;
+  }
+
+  .menu__lista,
+  .js .menu__lista {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--espaco-1);
+    padding: 0;
+    background-color: transparent;
+    border: 0;
+    box-shadow: none;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition: none;
+  }
+
+  .menu__item--sub {
+    position: relative;
+  }
+
+  /* Seta indicando que há submenu */
+  .menu__item--sub > a::after {
+    content: "";
+    display: inline-block;
+    width: 0.45em;
+    height: 0.45em;
+    margin-left: var(--espaco-2);
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: translateY(-0.2em) rotate(45deg);
+    transition: transform 0.2s ease;
+  }
+
+  .menu__item--sub:hover > a::after,
+  .menu__item--sub:focus-within > a::after {
+    transform: translateY(0.1em) rotate(-135deg);
+  }
+
+  /* Submenu escondido por padrão */
+  .submenu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 10;
+    min-width: 15rem;
+    margin: 0;
+    padding: var(--espaco-2) 0;
+    background-color: var(--papel-alto);
+    border: 1px solid var(--borda);
+    border-top: 3px solid var(--sinal);
+    border-radius: 0 0 var(--raio) var(--raio);
+    box-shadow: 0 8px 16px rgb(22 36 27 / 0.15);
+    --foco: var(--folha-forte);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-0.5rem);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s linear 0.2s;
+  }
+
+  /* Abre com o mouse (:hover) ou com o teclado (:focus-within) */
+  .menu__item--sub:hover > .submenu,
+  .menu__item--sub:focus-within > .submenu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s;
+  }
+
+  .menu .submenu a {
+    padding: var(--espaco-2) var(--espaco-4);
+    border-bottom: 0;
+    color: var(--tinta);
+    font-weight: var(--peso-normal);
+  }
+
+  .menu .submenu a:hover,
+  .menu .submenu a:focus-visible {
+    background-color: var(--folha-clara);
+    color: var(--folha-forte);
+  }
 }
 
 /* ---------- Estrutura geral do conteúdo -------------------------- */
@@ -678,8 +879,16 @@ textarea:user-invalid {
     grid-column: span 6;
   }
 
+  /* Cartão de projeto em coluna flexível: o parágrafo cresce e
+     empurra a ficha técnica para a base, alinhando os pares */
   .projeto {
-    display: block;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .projeto > p {
+    flex-grow: 1;
+    margin: 0;
   }
 
   .doacao {
