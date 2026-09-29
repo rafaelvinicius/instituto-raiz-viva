@@ -179,6 +179,33 @@ e fecha o painel com Esc, com clique fora do menu ou ao escolher um link. Sem
 JavaScript, a classe não é adicionada e o menu fica sempre visível. As transições
 são desligadas por `prefers-reduced-motion`.
 
+## Estados interativos de botões e formulário
+
+**Botões (`.botao`):** `transition` de 0.2s em fundo, borda, cor e sombra.
+
+| Estado | Efeito |
+|---|---|
+| `:hover` | Fundo `--sinal-forte` e `box-shadow: 0 4px 10px` (no secundário, fundo verde e texto claro) |
+| `:focus-visible` | Contorno global de 3px na cor `--foco` e anel branco de 2px separando o contorno do botão |
+| `:active` | `transform: translateY(1px)` e sem sombra, dando a sensação de clique |
+| `:disabled` | `opacity: 0.55`, `cursor: not-allowed`, sem sombra; hover e active não se aplicam (`:not(:disabled)`) |
+
+O botão "Enviar cadastro" fica desabilitado até o aceite da política de
+privacidade. O texto de ajuda ligado por `aria-describedby` explica o motivo.
+O `disabled` é aplicado pelo JavaScript; sem ele, o botão fica ativo.
+
+**Campos:**
+
+- `:hover` escurece a borda e `:focus` aplica borda verde e anel `--folha-clara`.
+- `:user-valid` nos campos obrigatórios: borda verde e ícone de confirmação.
+- `:user-invalid`: borda `--erro`, fundo `--erro-claro` e ícone de alerta.
+  Cor e ícone juntos, para o erro não depender só da cor.
+- Quando o envio falha, o JavaScript adiciona `.formulario--verificado` ao
+  formulário, e os campos obrigatórios que ficaram em branco também são
+  marcados, incluindo o grupo de rádio (`:has(input:invalid)`).
+- A mensagem de retorno (`.retorno--sucesso` / `.retorno--erro`) usa borda
+  lateral, fundo claro e `role="status"` para ser anunciada por leitores de tela.
+
 ## Validações nativas do formulário
 
 | Campo | Validação |

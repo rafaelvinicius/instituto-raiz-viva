@@ -181,6 +181,23 @@
   var retorno = document.getElementById('retorno');
 
   if (formulario) {
+    var botaoEnviar = formulario.querySelector('button[type="submit"]');
+    var campoTermos = document.getElementById('termos');
+
+    // O envio só é liberado depois do aceite da política de privacidade.
+    // O atributo disabled é aplicado pelo JavaScript: sem ele, o botão
+    // continua ativo e a validação nativa (required) segue valendo.
+    var atualizarBotaoEnviar = function () {
+      if (botaoEnviar && campoTermos) {
+        botaoEnviar.disabled = !campoTermos.checked;
+      }
+    };
+
+    if (campoTermos) {
+      campoTermos.addEventListener('change', atualizarBotaoEnviar);
+      atualizarBotaoEnviar();
+    }
+
     formulario.addEventListener('submit', function (evento) {
       evento.preventDefault();
 
@@ -189,6 +206,7 @@
       }
 
       if (!formulario.checkValidity()) {
+        formulario.classList.add('formulario--verificado');
         formulario.reportValidity();
         if (retorno) {
           retorno.textContent = 'Alguns campos precisam de correção antes do envio.';
@@ -197,14 +215,20 @@
         return;
       }
 
+      // reset() dispara o evento "reset", que limpa a mensagem de retorno.
+      // Por isso o formulário é limpo antes de a mensagem de sucesso aparecer.
+      formulario.reset();
+
       if (retorno) {
         retorno.textContent = 'Cadastro enviado. Entramos em contato em até dois dias úteis.';
         retorno.className = 'retorno retorno--sucesso';
       }
-      formulario.reset();
     });
 
     formulario.addEventListener('reset', function () {
+      formulario.classList.remove('formulario--verificado');
+      // O evento acontece antes de os campos serem limpos
+      setTimeout(atualizarBotaoEnviar, 0);
       if (retorno) {
         retorno.textContent = '';
         retorno.className = 'retorno';

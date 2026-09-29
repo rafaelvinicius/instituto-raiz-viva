@@ -573,11 +573,38 @@ figcaption {
   border-radius: var(--raio);
   text-decoration: none;
   cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.1s ease;
 }
 
-.botao:hover {
+/* Hover: fundo mais escuro e sombra, como se o botão "subisse" */
+.botao:hover:not(:disabled) {
   background-color: var(--sinal-forte);
   color: var(--tinta);
+  box-shadow: 0 4px 10px rgb(22 36 27 / 0.2);
+}
+
+/* Focus: além do contorno global de :focus-visible, um anel claro
+   separa o contorno da cor do botão */
+.botao:focus-visible {
+  box-shadow: 0 0 0 2px var(--papel-alto);
+}
+
+/* Active: o botão "afunda" no clique */
+.botao:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+/* Disabled: opacidade reduzida, sem sombra e cursor de bloqueio */
+.botao:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 .botao--secundario {
@@ -586,8 +613,9 @@ figcaption {
   color: var(--folha-forte);
 }
 
-.botao--secundario:hover {
+.botao--secundario:hover:not(:disabled) {
   background-color: var(--folha);
+  border-color: var(--folha);
   color: var(--papel);
 }
 
@@ -649,17 +677,78 @@ textarea {
   resize: vertical;
 }
 
+input,
+select,
+textarea {
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input:hover,
+select:hover,
+textarea:hover {
+  border-color: var(--tinta-fraca);
+}
+
 input:focus,
 select:focus,
 textarea:focus {
   border-color: var(--folha);
+  box-shadow: 0 0 0 3px var(--folha-clara);
 }
 
+input:disabled,
+select:disabled,
+textarea:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ---- Feedback de preenchimento ----
+   :user-valid e :user-invalid só entram depois que a pessoa interage
+   com o campo, para não mostrar erro em um formulário ainda vazio.
+   A classe .formulario--verificado é colocada pelo JavaScript quando o
+   envio falha e marca também os campos que ficaram em branco. */
+
+/* Sucesso: borda verde e ícone de confirmação nos campos obrigatórios */
+input[required]:user-valid,
+select[required]:user-valid,
+textarea[required]:user-valid {
+  border-color: var(--folha);
+}
+
+/* Erro: borda vermelha, fundo rosado e ícone de alerta */
 input:user-invalid,
 select:user-invalid,
-textarea:user-invalid {
+textarea:user-invalid,
+.formulario--verificado input:invalid,
+.formulario--verificado select:invalid,
+.formulario--verificado textarea:invalid {
   border-color: var(--erro);
   background-color: var(--erro-claro);
+}
+
+/* Grupo de rádio obrigatório sem opção marcada após tentativa de envio */
+.formulario--verificado .grupo-opcoes:has(input:invalid) {
+  border-color: var(--erro);
+  background-color: var(--erro-claro);
+}
+
+/* Ícones só nos campos de texto (data e número já têm controles à direita) */
+.campo input[required]:user-valid:not([type="date"]):not([type="number"]) {
+  padding-right: 2.5rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M4 10.5l4 4 8-9' fill='none' stroke='%232e6b4f' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--espaco-3) center;
+  background-size: 1.1rem;
+}
+
+.campo input:user-invalid:not([type="date"]):not([type="number"]),
+.formulario--verificado .campo input:invalid:not([type="date"]):not([type="number"]) {
+  padding-right: 2.5rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Ccircle cx='10' cy='10' r='8.5' fill='none' stroke='%23a32c1c' stroke-width='2'/%3E%3Cpath d='M10 5.5v5.5' stroke='%23a32c1c' stroke-width='2.2' stroke-linecap='round'/%3E%3Ccircle cx='10' cy='14.3' r='1.3' fill='%23a32c1c'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--espaco-3) center;
+  background-size: 1.1rem;
 }
 
 .ajuda {
