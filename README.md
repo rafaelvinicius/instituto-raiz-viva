@@ -5,32 +5,133 @@ educação ambiental, desenvolvida na disciplina de Desenvolvimento Front-End:
 
 - **Experiência Prática I** — estrutura em HTML5 semântico e formulário com validações.
 - **Experiência Prática II** — estilização com CSS3, a partir de um design system em variáveis CSS.
+- **Experiência Prática III** — interatividade com JavaScript: Single Page Application,
+  templates dinâmicos, eventos, validação, armazenamento local, biblioteca
+  externa e código modular.
+
+As versões entregues ficam marcadas com as tags `ep1` e `ep2`.
 
 ## Estrutura de diretórios
 
 ```
 instituto-raiz-viva/
-├── index.html              Página inicial: apresentação, missão, atuação e contato
-├── projetos.html           Quatro projetos sociais com ficha técnica
-├── cadastro.html           Formulário de doadores e voluntários
-├── componentes.html        Guia de componentes de feedback (etiquetas, alertas, toast, modal)
+├── index.html              Só redireciona para html/ (o GitHub Pages exige um index na raiz)
 ├── README.md
-└── assets/
-    ├── css/
-    │   └── style.css       Folha de estilo única, com o design system no :root
-    ├── js/
-    │   ├── mascaras.js     Máscaras de CPF, telefone e CEP + validações
-    │   ├── menu.js         Abre e fecha o menu hambúrguer no celular
-    │   └── feedback.js     Toasts e modais reutilizáveis (RaizViva.toast / abrirModal)
-    └── img/
-        ├── favicon.ico                   Ícone do navegador, 32x32
-        ├── logo-raiz-viva.png            Logotipo, 112x112 (exibido em 56x56)
-        ├── mutirao-plantio.webp / .jpg   Página inicial
-        ├── projeto-rua-arborizada.webp / .jpg
-        ├── projeto-viveiro.webp / .jpg
-        ├── projeto-calcada-fresca.webp / .jpg
-        └── projeto-cuidadores.webp / .jpg
+├── html/                   Páginas HTML
+│   ├── index.html          Casca da SPA: cabeçalho, <main> e rodapé preenchidos por JavaScript
+│   └── componentes.html    Guia de componentes de feedback (etiquetas, alertas, toast, modal)
+├── css/
+│   └── style.css           Folha de estilo única, com o design system no :root
+├── imagens/
+│   ├── favicon.ico                   Ícone do navegador, 32x32
+│   ├── logo-raiz-viva.png            Logotipo, 112x112 (exibido em 56x56)
+│   ├── mutirao-plantio.webp / .jpg   Página inicial
+│   └── projeto-*.webp / .jpg         Uma foto por projeto
+└── js/
+    ├── app.js              Ponto de entrada: monta o layout e inicia o roteador
+    ├── roteador.js         Navegação por hash (#/rota/ancora)
+    ├── rotas.js            Tabela endereço → página
+    ├── config.js           Caminhos compartilhados (pasta de imagens)
+    ├── guia.js             Entrada do componentes.html (reaproveita cabeçalho e rodapé)
+    ├── views/              Uma página por arquivo: inicio, projetos, cadastro, nao-encontrada
+    ├── componentes/        Templates reutilizáveis: cabecalho, rodape, figura, cartao,
+    │                       cartao-projeto, lista-definicoes, lista-valores, chamada-apoio
+    ├── dados/              Conteúdo estruturado: projetos, instituto, navegacao, estados
+    ├── interacoes/         DOM e eventos: menu, feedback (toast/modal), mascaras,
+    │                       campos-formulario e formulario-cadastro
+    ├── regras/
+    │   └── validacao.js    Regras de consistência (lógica pura, sem DOM)
+    ├── servicos/           Rede e armazenamento, sem DOM
+    │   ├── armazenamento.js  salvar() / ler() / remover() no localStorage
+    │   ├── cadastros.js    Rascunho e histórico de cadastros
+    │   └── viacep.js       Consulta de CEP na API ViaCEP
+    └── utils/
+        ├── html.js         escapar() e renderizarLista()
+        └── datas.js        Integração com a biblioteca Day.js (com alternativa nativa)
+
+testes/
+└── modulos.test.mjs        Testes automatizados das regras, máscaras e serviços
 ```
+
+## Single Page Application (Experiência Prática III)
+
+### Navegação
+
+O site passou a ter um único HTML (`html/index.html`). O JavaScript lê o endereço e
+troca apenas o conteúdo do `<main>` e o título do cabeçalho, sem recarregar a página.
+
+| Endereço | Página |
+|---|---|
+| `#/` | Início |
+| `#/projetos` | Projetos sociais |
+| `#/projetos/viveiro-escola` | Projetos, já rolando até o projeto |
+| `#/cadastro` | Cadastro de doadores e voluntários |
+| qualquer outro | Página não encontrada |
+
+As rotas usam o **hash** (`#/...`) porque o site é publicado no GitHub Pages, que
+não devolve o `index.html` para caminhos desconhecidos. Com o hash, atualizar a
+página, abrir um link direto e usar os botões Voltar/Avançar do navegador funcionam
+sem configuração no servidor.
+
+A cada troca de página o roteador:
+
+1. atualiza `document.title`, a meta description e o `aria-current` do menu;
+2. renderiza a página no `<main>` e chama `aoMontar()`, quando a página precisa
+   ligar eventos (caso do formulário de cadastro);
+3. rola para o topo e leva o foco ao `h1`, para que leitores de tela percebam a
+   mudança. Com âncora, rola e leva o foco até a seção indicada.
+
+Na Experiência Prática III, os arquivos foram separados em pastas por
+responsabilidade: `html/`, `css/`, `imagens/` e `js/`. O `index.html` da raiz só
+redireciona para `html/`, preservando a rota (`/#/projetos` → `/html/#/projetos`).
+As páginas `projetos.html` e `cadastro.html` deixaram de existir; as versões
+anteriores continuam disponíveis pelas tags `ep1` e `ep2`.
+
+### Templates dinâmicos
+
+Cada componente é uma função que recebe dados e devolve uma string de HTML
+(template literal). As páginas são montadas combinando esses componentes:
+
+| Componente | Reaproveitado em |
+|---|---|
+| `cabecalho` / `rodape` | Todas as páginas da SPA e o `componentes.html` |
+| `figura` (WebP + JPG) | Destaque da página inicial e os quatro projetos |
+| `listaDefinicoes` | Números do instituto, ficha técnica dos projetos e valores de doação |
+| `listaValores` | Missão, frentes de voluntariado e primeiros passos |
+| `cartaoProjeto` | Um cartão por item de `dados/projetos.js` |
+| `chamadaApoio` | Bloco "Apoie" da página inicial e da página de projetos |
+
+O submenu de Projetos e os cartões são gerados a partir do mesmo arquivo de dados:
+incluir um projeto em `dados/projetos.js` faz ele aparecer nos dois lugares. As
+opções do campo Estado também vêm de uma lista (`dados/estados.js`).
+
+Todo texto vindo de dados passa por `escapar()` antes de entrar no template, o que
+impede que um conteúdo seja interpretado como HTML.
+
+### Módulos
+
+O JavaScript usa módulos ES (`import`/`export`), carregados com
+`<script type="module">`. Cada pasta tem uma responsabilidade, e as dependências
+seguem um sentido só:
+
+```
+app.js → roteador / rotas → views → componentes + interacoes
+interacoes → regras + servicos + utils
+servicos, regras, dados, utils → não importam nada das camadas de cima
+```
+
+| Camada | Pode usar o DOM? | Acessa rede ou localStorage? |
+|---|---|---|
+| `views/`, `componentes/` | Só geram strings de HTML | Não |
+| `interacoes/` | Sim (eventos, classes, foco) | Não, pede aos serviços |
+| `regras/` | Não | Não |
+| `servicos/` | Não | Sim, é o único lugar que acessa |
+| `dados/`, `utils/` | Não | Não (exceto o carregamento do Day.js) |
+
+Não há importações circulares nem variáveis globais. Os módulos trocam
+informação por parâmetros e retornos de funções. Os eventos globais (menu, toast
+e modal) usam delegação no `document`, então continuam funcionando quando o
+cabeçalho e o conteúdo são renderizados de novo.
 
 ## Tags semânticas utilizadas
 
@@ -49,7 +150,7 @@ Nenhum nível é pulado. A escolha é semântica; o tamanho da fonte fica no CSS
 ## Design system
 
 Todas as decisões visuais ficam em variáveis CSS no `:root` de
-`assets/css/style.css`. Fora delas, as regras não usam cor, tamanho de fonte ou
+`css/style.css`. Fora delas, as regras não usam cor, tamanho de fonte ou
 espaçamento com valor fixo; os únicos valores soltos são larguras de layout
 (`max-width`, `minmax`).
 
@@ -176,8 +277,8 @@ recuados sob "Projetos".
 `position: absolute` e fica escondido até o item receber `:hover` ou
 `:focus-within`, o que permite abri-lo com o mouse ou com a tecla Tab.
 
-O `menu.js` adiciona a classe `js` ao `<html>`, alterna o `aria-expanded` do botão
-e fecha o painel com Esc, com clique fora do menu ou ao escolher um link. Sem
+O `app.js` adiciona a classe `js` ao `<html>` e o `interacoes/menu.js`, alterna o `aria-expanded` do botão
+que fecha o painel com Esc, com clique fora do menu ou ao escolher um link. Sem
 JavaScript, a classe não é adicionada e o menu fica sempre visível. As transições
 são desligadas por `prefers-reduced-motion`.
 
@@ -210,17 +311,17 @@ O `disabled` é aplicado pelo JavaScript; sem ele, o botão fica ativo.
 
 ## Componentes de feedback
 
-Documentados com exemplos e HTML em `componentes.html`. Todos compartilham três
+Documentados com exemplos e HTML em `html/componentes.html`. Todos compartilham três
 variáveis locais, `--feedback-cor`, `--feedback-fundo` e `--feedback-icone`, e
 cada variante (`--sucesso`, `--aviso`, `--erro`; sem modificador = informação)
 só troca esses valores.
 
 | Componente | Classe | Onde é usado |
 |---|---|---|
-| Etiqueta (badge) | `.etiqueta`, `.etiqueta--sucesso` | Situação e área de cada projeto em `projetos.html` |
-| Alerta | `.alerta`, `.alerta--info`, `--sucesso`, `--aviso`, `--erro` | Prestação de contas (`projetos.html`) e erro de envio do cadastro |
-| Toast | `.alerta.toast` (criado por `RaizViva.toast()`) | Aviso de "Formulário limpo" no cadastro |
-| Modal | `dialog.modal` (aberto por `RaizViva.abrirModal()`) | Confirmação de cadastro com os próximos passos |
+| Etiqueta (badge) | `.etiqueta`, `.etiqueta--sucesso` | Situação e área de cada projeto na página de projetos |
+| Alerta | `.alerta`, `.alerta--info`, `--sucesso`, `--aviso`, `--erro` | Prestação de contas (página de projetos) e erro de envio do cadastro |
+| Toast | `.alerta.toast` (criado por `toast()`) | Aviso de "Formulário limpo" no cadastro |
+| Modal | `dialog.modal` (aberto por `abrirModal()`) | Confirmação de cadastro com os próximos passos |
 
 O ícone dos alertas é um SVG aplicado com `mask`, pintado com a cor da variante.
 O modal usa o `<dialog>` nativo, que prende o foco, fecha com Esc e devolve o
@@ -232,31 +333,89 @@ Novas cores: `--sinal-escuro` (#8a5a00, 5,3:1 sobre `--sinal-claro`) e
 Para um desenvolvedor back-end, basta gerar o HTML da tabela acima ou chamar:
 
 ```js
-RaizViva.toast('Cadastro enviado com sucesso.', 'sucesso');
-RaizViva.abrirModal('modal-sucesso');
+import { toast, abrirModal } from '../js/interacoes/feedback.js';
+
+toast('Cadastro enviado com sucesso.', 'sucesso');
+abrirModal('modal-sucesso');
 ```
 
-## Validações nativas do formulário
+## Validação do formulário
 
-| Campo | Validação |
-|---|---|
-| Nome completo | `required`, `minlength`, `maxlength`, `pattern` (nome e sobrenome) |
-| CPF | `required`, `pattern` `\d{3}\.\d{3}\.\d{3}-\d{2}`, dígitos verificadores em JS |
-| Data de nascimento | `type="date"`, `min`, `max` (maior de 18 anos) |
-| E-mail | `type="email"`, `required`, `maxlength` |
-| Telefone | `type="tel"`, `pattern` `\(\d{2}\)\s\d{4,5}-\d{4}` |
-| CEP | `required`, `pattern` `\d{5}-\d{3}`, busca de endereço, cidade e estado via ViaCEP |
-| Endereço | `type="text"`, `required`, `maxlength`, `autocomplete="address-line1"` |
-| Cidade | `type="text"`, `required`, `maxlength` |
-| Estado | `select` com `required` |
-| Tipo de participação | grupo de `radio` com `required` |
-| Doação mensal | `type="number"`, `min="10"`, `max="10000"`, `step="5"` |
-| Mensagem | `textarea` com `maxlength="500"` |
-| Aceite dos termos | `checkbox` com `required` |
+Os atributos HTML da EP1 (`required`, `pattern`, `min`, `max`...) continuam no
+formulário. Na EP3, a verificação passou a ser feita por JavaScript, em
+`js/regras/validacao.js`, com uma regra por campo. A exibição do resultado na
+tela fica em `js/interacoes/campos-formulario.js`:
+
+| Campo | Critério | Mensagem quando falha |
+|---|---|---|
+| Nome completo | Nome e sobrenome, só letras (RegEx), mínimo de 6 caracteres | "Informe nome e sobrenome, usando apenas letras." |
+| CPF | Formato `000.000.000-00` (RegEx) e dígitos verificadores | "Este CPF não existe. Confira os números digitados." |
+| Data de nascimento | 18 anos completos, calculados a partir da data de hoje | "É preciso ter 18 anos ou mais para participar." |
+| E-mail | `algo@dominio.ext` (RegEx) | "Digite um e-mail válido, como maria@exemplo.com.br." |
+| Telefone | `(00) 0000-0000` ou `(00) 00000-0000` (RegEx) | "Informe o DDD e o número, com 10 ou 11 dígitos." |
+| CEP | `00000-000` (RegEx) | "Digite os 8 números do CEP." |
+| Endereço | Obrigatório e com número do imóvel | "Inclua o número do imóvel." |
+| Cidade | Só letras (RegEx) | "Use apenas letras no nome da cidade." |
+| Estado / Tipo de participação | Uma opção escolhida | "Selecione o estado." / "Escolha como você quer contribuir." |
+| Doação mensal | Obrigatória para doador ou "das duas formas"; de R$ 10 a R$ 10.000, múltiplo de 5 | "Informe o valor da doação mensal." |
+| Mensagem | Até 500 caracteres, com contador | "Use no máximo 500 caracteres." |
+| Aceite dos termos | Marcado | "É preciso aceitar a política de privacidade." |
+
+**Quando verifica:** ao sair do campo; enquanto a pessoa digita, só nos campos
+já visitados (o erro some assim que o valor é corrigido); e em todos os campos
+ao enviar. Os eventos usam delegação no próprio `<form>`.
+
+**Como avisa:** o contêiner do campo recebe `.campo--erro` (borda vermelha,
+fundo rosado e ícone) ou `.campo--valido` (borda verde e ícone de confirmação),
+e uma mensagem `.campo__erro` é inserida logo abaixo. O campo recebe
+`aria-invalid="true"` e `aria-describedby` apontando para a mensagem, para que
+o leitor de tela a anuncie. No envio com erro, um alerta resume quantos campos
+precisam de correção e o foco vai para o primeiro deles. A regra também chama
+`setCustomValidity()`, mantendo a validação nativa coerente com o JavaScript.
+
+## Dados salvos no navegador (localStorage)
+
+| Chave | Formato | Quando grava | Quando lê |
+|---|---|---|---|
+| `raizviva:rascunho-cadastro` | objeto `{ salvoEm, campos }` | 400 ms depois de cada alteração no formulário | Ao abrir a página de cadastro: devolve os valores aos campos |
+| `raizviva:cadastros` | array de `{ nome, email, perfil, valor, enviadoEm }` | No envio válido (um novo envio com o mesmo e-mail substitui o anterior) | Ao abrir a página de cadastro: lista os cadastros ao lado do formulário |
+
+`js/servicos/armazenamento.js` concentra o acesso: `salvar()` converte com
+`JSON.stringify` e chama `setItem`; `ler()` chama `getItem`, converte com
+`JSON.parse` e confere o formato (objeto ou array). Se o dado estiver corrompido,
+em outro formato ou se o navegador bloquear o armazenamento, a função devolve um
+valor padrão e a página continua funcionando.
+
+O rascunho é apagado no envio e no botão "Limpar formulário", e o histórico tem
+o botão "Apagar histórico". Por privacidade, o CPF e o aceite dos termos nunca
+são gravados, e o histórico guarda só o necessário para ser exibido. Os textos
+lidos do armazenamento passam por `escapar()` antes de entrar no HTML.
+
+## Biblioteca externa: Day.js
+
+O [Day.js](https://day.js.org) (versão 1.11.23) cuida das datas:
+
+- **idade exata** a partir da data de nascimento, usada na regra de 18 anos
+  (`dayjs().diff(nascimento, 'year')`);
+- **tempo relativo** no histórico de cadastros, com o plugin `relativeTime` e
+  textos em português ("Enviado há 5 minutos"; a data completa fica no `title`).
+
+Toda a integração fica em `js/utils/datas.js`:
+
+1. a biblioteca e o plugin são importados do CDN jsDelivr como módulos ES
+   (`+esm`), com a versão fixa na URL. Nada é criado em `window`, então não há
+   conflito com outras variáveis;
+2. o carregamento usa `import()` dinâmico, iniciado pelo `app.js` sem esperar o
+   resultado, para não atrasar a primeira renderização;
+3. depois de carregar, `dayjs.extend(relativeTime)` ativa o plugin e
+   `dayjs.locale(...)` define os textos em português;
+4. se o CDN estiver fora do ar ou bloqueado, `carregarDatas()` resolve `false` e
+   as funções usam `Date` e `Intl` nativos. O site continua funcionando, e o
+   histórico mostra a data completa em vez do tempo relativo.
 
 ## Máscaras
 
-Implementadas em `assets/js/mascaras.js`, sem bibliotecas externas, aplicadas
+Implementadas em `js/interacoes/mascaras.js`, sem bibliotecas externas, aplicadas
 pelo atributo `data-mascara` no HTML:
 
 - **CPF** — `000.000.000-00`, com validação dos dois dígitos verificadores.
@@ -299,9 +458,47 @@ servido em 112x112 para telas de alta densidade, embora exibido em 56x56.
 
 ## Como executar
 
-Abrir `index.html` em qualquer navegador. Não há build nem dependência de servidor.
+Versão publicada: https://rafaelvinicius.github.io/instituto-raiz-viva/ (abre em `/html/`)
+
+Localmente, é preciso um servidor HTTP, porque os navegadores bloqueiam módulos ES
+abertos direto do disco (`file://`). Qualquer uma destas opções funciona, na pasta
+do projeto:
+
+```bash
+npx serve .
+# ou
+python3 -m http.server 8000
+```
+
+No VS Code, a extensão Live Server também resolve. Não há etapa de build.
 A consulta de CEP exige conexão com a internet; sem ela, o endereço é preenchido
 manualmente sem quebrar o formulário.
+
+## Testes
+
+As regras, as máscaras e os serviços não dependem do navegador, então têm testes
+automatizados com o test runner nativo do Node (versão 18 ou superior, sem
+instalar nada):
+
+```bash
+node --test testes/modulos.test.mjs
+```
+
+São 15 testes, que cobrem: CPF válido e inválido, formatos de e-mail, telefone e
+CEP, idade mínima, a regra condicional da doação, as máscaras, o `escapar()`, o
+rascunho sem CPF, o histórico sem duplicidade, a leitura de JSON corrompido e as
+respostas do ViaCEP (com `fetch` simulado).
+
+### Falhas encontradas nos testes da interface e corrigidas
+
+| Problema | Correção |
+|---|---|
+| Ao sair da página de cadastro enquanto o CEP era consultado, a resposta preenchia e focava um formulário que já não estava na tela e gravava esse estado no rascunho | `formulario.isConnected` é conferido depois do `await`; se a página mudou, nada é feito |
+| Digitar "1e" no campo de doação: o navegador entrega `value = ''` e a regra aceitava como vazio | Checagem de `validity.badInput` antes da regra, com mensagem própria (vale também para data incompleta) |
+| Contorno de foco no título a cada troca de página | `[tabindex="-1"]:focus { outline: none; }` |
+| Data máxima de nascimento fixa em 31/12/2008, que bloqueava quem já tinha 18 anos | `max` calculado a partir de hoje |
+| Esse cálculo usava `toISOString()` (UTC): depois das 21h em São Paulo, a data saía adiantada em um dia | Data montada com os métodos locais (`getFullYear`, `getMonth`, `getDate`) |
+| Sem acesso ao CDN, o Day.js não carrega | `import()` dinâmico com alternativa nativa (`Date`/`Intl`) |
 
 ## Validação W3C
 

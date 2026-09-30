@@ -7,45 +7,24 @@
   <meta name="robots" content="noindex">
   <meta name="author" content="Instituto Raiz Viva">
   <title>Guia de componentes — Instituto Raiz Viva</title>
-  <link rel="icon" href="assets/img/favicon.ico">
+  <link rel="icon" href="../imagens/favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&amp;family=Public+Sans:wght@400;500;700&amp;display=swap">
-  <link rel="stylesheet" href="assets/css/style.css">
-  <script src="assets/js/menu.js"></script>
+  <link rel="stylesheet" href="../css/style.css">
+  <!-- Cabeçalho e rodapé vêm dos mesmos componentes da SPA -->
+  <script type="module" src="../js/guia.js"></script>
 </head>
 <body>
 
-  <header class="cabecalho">
+  <header class="cabecalho" id="cabecalho">
     <div class="cabecalho__marca">
-      <img src="assets/img/logo-raiz-viva.png" alt="Instituto Raiz Viva" width="56" height="56">
+      <img src="../imagens/logo-raiz-viva.png" alt="Instituto Raiz Viva" width="56" height="56">
       <div>
         <h1>Guia de componentes</h1>
         <p class="cabecalho__lema">Etiquetas, alertas, toasts e modal usados na plataforma</p>
       </div>
     </div>
-
-    <nav class="menu" aria-label="Navegação principal">
-      <button class="menu__botao" type="button" aria-expanded="false" aria-controls="menu-lista">
-        <span class="menu__icone" aria-hidden="true"></span>
-        Menu
-      </button>
-      <ul id="menu-lista" class="menu__lista">
-        <li><a href="index.html">Início</a></li>
-        <li class="menu__item--sub">
-          <a href="projetos.html">Projetos</a>
-          <ul id="submenu-projetos" class="submenu">
-            <li><a href="projetos.html#rua-arborizada">Rua Arborizada</a></li>
-            <li><a href="projetos.html#viveiro-escola">Viveiro Escola</a></li>
-            <li><a href="projetos.html#calcada-fresca">Calçada Fresca</a></li>
-            <li><a href="projetos.html#cuidadores-da-quadra">Cuidadores da Quadra</a></li>
-            <li><a href="projetos.html#como-doar">Como doar</a></li>
-            <li><a href="projetos.html#voluntariado">Como ser voluntário</a></li>
-          </ul>
-        </li>
-        <li><a href="cadastro.html">Cadastre-se</a></li>
-      </ul>
-    </nav>
   </header>
 
   <main id="conteudo">
@@ -125,7 +104,8 @@
         <button type="button" class="botao botao--secundario" data-toast="Não foi possível consultar o CEP." data-toast-tipo="aviso">Toast de aviso</button>
         <button type="button" class="botao botao--secundario" data-toast="Alguns campos precisam de correção." data-toast-tipo="erro">Toast de erro</button>
       </div>
-      <pre class="codigo"><code>RaizViva.toast('Cadastro enviado com sucesso.', 'sucesso');
+      <pre class="codigo"><code>import { toast } from '../js/interacoes/feedback.js';
+toast('Cadastro enviado com sucesso.', 'sucesso');
 
 &lt;button data-toast="Mensagem" data-toast-tipo="aviso"&gt;...&lt;/button&gt;</code></pre>
     </section>
@@ -154,21 +134,7 @@
 
   </main>
 
-  <footer class="rodape">
-    <p class="rodape__nome">Instituto Raiz Viva</p>
-    <p>CNPJ 12.345.678/0001-90 — organização da sociedade civil sem fins lucrativos.</p>
-
-    <nav aria-label="Links do rodapé">
-      <ul>
-        <li><a href="index.html">Início</a></li>
-        <li><a href="projetos.html">Projetos</a></li>
-        <li><a href="cadastro.html">Cadastre-se</a></li>
-        <li><a href="mailto:contato@raizviva.org.br">Contato</a></li>
-      </ul>
-    </nav>
-
-    <p><small>&copy; 2026 Instituto Raiz Viva. Todos os direitos reservados.</small></p>
-  </footer>
+  <footer class="rodape" id="rodape"></footer>
 
   <dialog id="modal-exemplo" class="modal" aria-labelledby="modal-exemplo-titulo">
     <div class="modal__conteudo">
@@ -186,6 +152,5 @@
     </div>
   </dialog>
 
-  <script src="assets/js/feedback.js"></script>
 </body>
 </html>

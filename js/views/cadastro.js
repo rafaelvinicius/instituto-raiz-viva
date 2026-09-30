@@ -1,54 +1,30 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Cadastre-se como doador ou voluntário do Instituto Raiz Viva e participe dos mutirões de plantio na zona leste de São Paulo.">
-  <meta name="author" content="Instituto Raiz Viva">
-  <title>Cadastro de doadores e voluntários — Instituto Raiz Viva</title>
-  <link rel="icon" href="assets/img/favicon.ico">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&amp;family=Public+Sans:wght@400;500;700&amp;display=swap">
-  <link rel="stylesheet" href="assets/css/style.css">
-  <script src="assets/js/menu.js"></script>
-</head>
-<body>
+/* ==================================================================
+   Página: Cadastro de doadores e voluntários
+   O HTML do formulário é o mesmo da EP2. As opções de estado são
+   geradas a partir de dados/estados.js e os eventos (máscaras,
+   validação, envio) são ligados em aoMontar(), depois que o
+   formulário já existe na página.
+   ================================================================== */
 
-  <header class="cabecalho">
-    <div class="cabecalho__marca">
-      <img src="assets/img/logo-raiz-viva.png" alt="Instituto Raiz Viva" width="56" height="56">
-      <div>
-        <h1>Cadastro de doadores e voluntários</h1>
-        <p class="cabecalho__lema">Leva menos de dois minutos. Entramos em contato em até dois dias úteis.</p>
-      </div>
-    </div>
+import { escapar, renderizarLista } from '../utils/html.js';
+import { caminhoPara } from '../roteador.js';
+import { estados } from '../dados/estados.js';
+import { iniciarFormularioCadastro } from '../interacoes/formulario-cadastro.js';
 
-    <nav class="menu" aria-label="Navegação principal">
-      <button class="menu__botao" type="button" aria-expanded="false" aria-controls="menu-lista">
-        <span class="menu__icone" aria-hidden="true"></span>
-        Menu
-      </button>
-      <ul id="menu-lista" class="menu__lista">
-        <li><a href="index.html">Início</a></li>
-        <li class="menu__item--sub">
-          <a href="projetos.html">Projetos</a>
-          <ul id="submenu-projetos" class="submenu">
-            <li><a href="projetos.html#rua-arborizada">Rua Arborizada</a></li>
-            <li><a href="projetos.html#viveiro-escola">Viveiro Escola</a></li>
-            <li><a href="projetos.html#calcada-fresca">Calçada Fresca</a></li>
-            <li><a href="projetos.html#cuidadores-da-quadra">Cuidadores da Quadra</a></li>
-            <li><a href="projetos.html#como-doar">Como doar</a></li>
-            <li><a href="projetos.html#voluntariado">Como ser voluntário</a></li>
-          </ul>
-        </li>
-        <li><a href="cadastro.html" aria-current="page">Cadastre-se</a></li>
-      </ul>
-    </nav>
-  </header>
+const opcaoEstado = ({ sigla, nome }) =>
+  `<option value="${escapar(sigla)}">${escapar(nome)}</option>`;
 
-  <main id="conteudo">
+export const cadastro = {
+  titulo: 'Cadastro de doadores e voluntários — Instituto Raiz Viva',
+  descricao:
+    'Cadastre-se como doador ou voluntário do Instituto Raiz Viva e participe dos ' +
+    'mutirões de plantio na zona leste de São Paulo.',
+  cabecalho: {
+    titulo: 'Cadastro de doadores e voluntários',
+    lema: 'Leva menos de dois minutos. Entramos em contato em até dois dias úteis.'
+  },
 
+  renderizar: () => `
     <section class="intro intro--lateral">
       <h2>Antes de começar</h2>
       <p>
@@ -56,6 +32,11 @@
         dados são usados apenas para contato e emissão de recibo de doação, conforme a
         Lei Geral de Proteção de Dados.
       </p>
+      <p>
+        O que você digita fica salvo neste navegador até o envio, para não se perder
+        se a página for fechada. O CPF não é salvo.
+      </p>
+      <div id="historico-cadastros" class="historico" aria-live="polite"></div>
     </section>
 
     <section class="formulario">
@@ -72,7 +53,7 @@
                    autocomplete="name"
                    placeholder="Maria Aparecida de Souza"
                    minlength="6" maxlength="80"
-                   pattern="[A-Za-zÀ-ÖØ-öø-ÿ']+(\s[A-Za-zÀ-ÖØ-öø-ÿ']+)+"
+                   pattern="[A-Za-zÀ-ÖØ-öø-ÿ']+(\\s[A-Za-zÀ-ÖØ-öø-ÿ']+)+"
                    title="Informe nome e sobrenome, apenas letras."
                    required>
           </div>
@@ -83,7 +64,7 @@
                    inputmode="numeric"
                    placeholder="000.000.000-00"
                    maxlength="14"
-                   pattern="\d{3}\.\d{3}\.\d{3}-\d{2}"
+                   pattern="\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}"
                    title="Digite os 11 números do CPF."
                    data-mascara="cpf"
                    required>
@@ -115,7 +96,7 @@
                    inputmode="numeric"
                    placeholder="(11) 90000-0000"
                    maxlength="15"
-                   pattern="\(\d{2}\)\s\d{4,5}-\d{4}"
+                   pattern="\\(\\d{2}\\)\\s\\d{4,5}-\\d{4}"
                    title="Informe DDD e número, com 10 ou 11 dígitos."
                    data-mascara="telefone"
                    required>
@@ -133,7 +114,7 @@
                    inputmode="numeric"
                    placeholder="00000-000"
                    maxlength="9"
-                   pattern="\d{5}-\d{3}"
+                   pattern="\\d{5}-\\d{3}"
                    title="Digite os 8 números do CEP."
                    data-mascara="cep"
                    required>
@@ -162,33 +143,7 @@
             <label for="uf">Estado <abbr title="obrigatório">*</abbr></label>
             <select id="uf" name="uf" autocomplete="address-level1" required>
               <option value="">Selecione</option>
-              <option value="AC">Acre</option>
-              <option value="AL">Alagoas</option>
-              <option value="AP">Amapá</option>
-              <option value="AM">Amazonas</option>
-              <option value="BA">Bahia</option>
-              <option value="CE">Ceará</option>
-              <option value="DF">Distrito Federal</option>
-              <option value="ES">Espírito Santo</option>
-              <option value="GO">Goiás</option>
-              <option value="MA">Maranhão</option>
-              <option value="MT">Mato Grosso</option>
-              <option value="MS">Mato Grosso do Sul</option>
-              <option value="MG">Minas Gerais</option>
-              <option value="PA">Pará</option>
-              <option value="PB">Paraíba</option>
-              <option value="PR">Paraná</option>
-              <option value="PE">Pernambuco</option>
-              <option value="PI">Piauí</option>
-              <option value="RJ">Rio de Janeiro</option>
-              <option value="RN">Rio Grande do Norte</option>
-              <option value="RS">Rio Grande do Sul</option>
-              <option value="RO">Rondônia</option>
-              <option value="RR">Roraima</option>
-              <option value="SC">Santa Catarina</option>
-              <option value="SP">São Paulo</option>
-              <option value="SE">Sergipe</option>
-              <option value="TO">Tocantins</option>
+              ${renderizarLista(estados, opcaoEstado)}
             </select>
           </div>
         </fieldset>
@@ -260,43 +215,23 @@
       <p id="retorno" class="retorno" role="status"></p>
     </section>
 
-  </main>
-
-  <footer class="rodape">
-    <p class="rodape__nome">Instituto Raiz Viva</p>
-    <p>CNPJ 12.345.678/0001-90 — organização da sociedade civil sem fins lucrativos.</p>
-
-    <nav aria-label="Links do rodapé">
-      <ul>
-        <li><a href="index.html">Início</a></li>
-        <li><a href="projetos.html">Projetos</a></li>
-        <li><a href="cadastro.html">Cadastre-se</a></li>
-        <li><a href="mailto:contato@raizviva.org.br">Contato</a></li>
-      </ul>
-    </nav>
-
-    <p><small>&copy; 2026 Instituto Raiz Viva. Todos os direitos reservados.</small></p>
-  </footer>
-
-  <dialog id="modal-sucesso" class="modal" aria-labelledby="modal-sucesso-titulo">
-    <div class="modal__conteudo">
-      <div class="modal__cabecalho">
-        <h2 id="modal-sucesso-titulo" class="modal__titulo">Cadastro recebido</h2>
-        <button type="button" class="botao-fechar" data-fechar-modal aria-label="Fechar">&times;</button>
+    <dialog id="modal-sucesso" class="modal" aria-labelledby="modal-sucesso-titulo">
+      <div class="modal__conteudo">
+        <div class="modal__cabecalho">
+          <h2 id="modal-sucesso-titulo" class="modal__titulo">Cadastro recebido</h2>
+          <button type="button" class="botao-fechar" data-fechar-modal aria-label="Fechar">&times;</button>
+        </div>
+        <p>Obrigado por se cadastrar. Entramos em contato em até dois dias úteis.</p>
+        <ul class="lista-valores">
+          <li><strong>Voluntários:</strong> a próxima etapa é a conversa de boas-vindas, on-line, com duração de 40 minutos.</li>
+          <li><strong>Doadores:</strong> o recibo é emitido em até cinco dias úteis.</li>
+        </ul>
+        <div class="modal__rodape">
+          <a class="botao botao--secundario" href="${caminhoPara('/projetos')}">Conhecer os projetos</a>
+          <button type="button" class="botao" data-fechar-modal>Fechar</button>
+        </div>
       </div>
-      <p>Obrigado por se cadastrar. Entramos em contato em até dois dias úteis.</p>
-      <ul class="lista-valores">
-        <li><strong>Voluntários:</strong> a próxima etapa é a conversa de boas-vindas, on-line, com duração de 40 minutos.</li>
-        <li><strong>Doadores:</strong> o recibo é emitido em até cinco dias úteis.</li>
-      </ul>
-      <div class="modal__rodape">
-        <a class="botao botao--secundario" href="projetos.html">Conhecer os projetos</a>
-        <button type="button" class="botao" data-fechar-modal>Fechar</button>
-      </div>
-    </div>
-  </dialog>
+    </dialog>`,
 
-  <script src="assets/js/feedback.js"></script>
-  <script src="assets/js/mascaras.js"></script>
-</body>
-</html>
+  aoMontar: (raiz) => iniciarFormularioCadastro(raiz)
+};
