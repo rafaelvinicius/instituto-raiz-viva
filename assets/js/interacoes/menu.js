@@ -1,47 +1,37 @@
 /* ==================================================================
    Instituto Raiz Viva — menu principal (hambúrguer no celular)
+   ------------------------------------------------------------------
+   Na SPA o cabeçalho é renderizado de novo a cada troca de página,
+   então os eventos usam delegação: ficam no document e procuram o
+   botão no momento do clique. Assim, não é preciso ligá-los de novo
+   depois de cada renderização.
    ================================================================== */
 
-/* Marca a página como "com JavaScript" antes da renderização. O CSS só
-   esconde a lista do menu quando essa classe existe; sem JavaScript o
-   menu continua visível e funcional. */
-document.documentElement.classList.add('js');
+const obterBotao = () => document.querySelector('.menu__botao');
 
-document.addEventListener('DOMContentLoaded', function () {
-  var botao = document.querySelector('.menu__botao');
-  var lista = document.getElementById('menu-lista');
+const estaAberto = () => obterBotao()?.getAttribute('aria-expanded') === 'true';
 
-  if (!botao || !lista) {
-    return;
-  }
+const alternar = (abrir) => obterBotao()?.setAttribute('aria-expanded', String(abrir));
 
-  var estaAberto = function () {
-    return botao.getAttribute('aria-expanded') === 'true';
-  };
+export const iniciarMenu = () => {
+  document.addEventListener('click', (evento) => {
+    if (evento.target.closest('.menu__botao')) {
+      alternar(!estaAberto());
+      return;
+    }
 
-  var alternar = function (abrir) {
-    botao.setAttribute('aria-expanded', String(abrir));
-  };
-
-  botao.addEventListener('click', function () {
-    alternar(!estaAberto());
+    // Clique fora do menu ou em um link fecha o painel
+    if (estaAberto() &&
+        (!evento.target.closest('.menu') || evento.target.closest('.menu__lista a'))) {
+      alternar(false);
+    }
   });
 
   // Esc fecha o menu e devolve o foco ao botão
-  document.addEventListener('keydown', function (evento) {
+  document.addEventListener('keydown', (evento) => {
     if (evento.key === 'Escape' && estaAberto()) {
       alternar(false);
-      botao.focus();
+      obterBotao().focus();
     }
   });
-
-  // Clique fora do menu ou em um link fecha o painel
-  document.addEventListener('click', function (evento) {
-    if (!estaAberto()) {
-      return;
-    }
-    if (!evento.target.closest('.menu') || evento.target.closest('.menu__lista a')) {
-      alternar(false);
-    }
-  });
-});
+};

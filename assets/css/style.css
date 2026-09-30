@@ -111,6 +111,13 @@ a:hover {
   outline-offset: 2px;
 }
 
+/* SPA: ao trocar de página, o JavaScript leva o foco para o título (ou
+   para a seção da âncora) usando tabindex="-1". Esses elementos não são
+   interativos, então não recebem o contorno de foco. */
+[tabindex="-1"]:focus {
+  outline: none;
+}
+
 abbr[title] {
   color: var(--erro);
   text-decoration: none;

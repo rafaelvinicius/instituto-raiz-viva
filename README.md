@@ -5,23 +5,35 @@ educação ambiental, desenvolvida na disciplina de Desenvolvimento Front-End:
 
 - **Experiência Prática I** — estrutura em HTML5 semântico e formulário com validações.
 - **Experiência Prática II** — estilização com CSS3, a partir de um design system em variáveis CSS.
+- **Experiência Prática III** — interatividade com JavaScript: Single Page Application,
+  templates dinâmicos, eventos, validação e armazenamento local (em andamento).
+
+As versões entregues ficam marcadas com as tags `ep1` e `ep2`.
 
 ## Estrutura de diretórios
 
 ```
 instituto-raiz-viva/
-├── index.html              Página inicial: apresentação, missão, atuação e contato
-├── projetos.html           Quatro projetos sociais com ficha técnica
-├── cadastro.html           Formulário de doadores e voluntários
+├── index.html              Casca da SPA: cabeçalho, <main> e rodapé preenchidos por JavaScript
+├── projetos.html           Redireciona o endereço antigo para index.html#/projetos
+├── cadastro.html           Redireciona o endereço antigo para index.html#/cadastro
 ├── componentes.html        Guia de componentes de feedback (etiquetas, alertas, toast, modal)
 ├── README.md
 └── assets/
     ├── css/
     │   └── style.css       Folha de estilo única, com o design system no :root
     ├── js/
-    │   ├── mascaras.js     Máscaras de CPF, telefone e CEP + validações
-    │   ├── menu.js         Abre e fecha o menu hambúrguer no celular
-    │   └── feedback.js     Toasts e modais reutilizáveis (RaizViva.toast / abrirModal)
+    │   ├── app.js          Ponto de entrada: monta o layout e inicia o roteador
+    │   ├── roteador.js     Navegação por hash (#/rota/ancora)
+    │   ├── rotas.js        Tabela endereço → página
+    │   ├── guia.js         Entrada do componentes.html (reaproveita cabeçalho e rodapé)
+    │   ├── views/          Uma página por arquivo: inicio, projetos, cadastro, nao-encontrada
+    │   ├── componentes/    Templates reutilizáveis: cabecalho, rodape, figura, cartao,
+    │   │                   cartao-projeto, lista-definicoes, lista-valores, chamada-apoio
+    │   ├── dados/          Conteúdo estruturado: projetos, instituto, navegacao, estados
+    │   ├── interacoes/     Comportamentos: menu, feedback (toast/modal), formulario-cadastro
+    │   └── utils/
+    │       └── html.js     escapar() e renderizarLista()
     └── img/
         ├── favicon.ico                   Ícone do navegador, 32x32
         ├── logo-raiz-viva.png            Logotipo, 112x112 (exibido em 56x56)
@@ -31,6 +43,66 @@ instituto-raiz-viva/
         ├── projeto-calcada-fresca.webp / .jpg
         └── projeto-cuidadores.webp / .jpg
 ```
+
+## Single Page Application (Experiência Prática III)
+
+### Navegação
+
+O site passou a ter um único HTML (`index.html`). O JavaScript lê o endereço e
+troca apenas o conteúdo do `<main>` e o título do cabeçalho, sem recarregar a página.
+
+| Endereço | Página |
+|---|---|
+| `#/` | Início |
+| `#/projetos` | Projetos sociais |
+| `#/projetos/viveiro-escola` | Projetos, já rolando até o projeto |
+| `#/cadastro` | Cadastro de doadores e voluntários |
+| qualquer outro | Página não encontrada |
+
+As rotas usam o **hash** (`#/...`) porque o site é publicado no GitHub Pages, que
+não devolve o `index.html` para caminhos desconhecidos. Com o hash, atualizar a
+página, abrir um link direto e usar os botões Voltar/Avançar do navegador funcionam
+sem configuração no servidor.
+
+A cada troca de página o roteador:
+
+1. atualiza `document.title`, a meta description e o `aria-current` do menu;
+2. renderiza a página no `<main>` e chama `aoMontar()`, quando a página precisa
+   ligar eventos (caso do formulário de cadastro);
+3. rola para o topo e leva o foco ao `h1`, para que leitores de tela percebam a
+   mudança. Com âncora, rola e leva o foco até a seção indicada.
+
+Os endereços antigos (`projetos.html`, `cadastro.html`) continuam funcionando:
+redirecionam para a rota equivalente, inclusive com âncora
+(`projetos.html#como-doar` → `index.html#/projetos/como-doar`).
+
+### Templates dinâmicos
+
+Cada componente é uma função que recebe dados e devolve uma string de HTML
+(template literal). As páginas são montadas combinando esses componentes:
+
+| Componente | Reaproveitado em |
+|---|---|
+| `cabecalho` / `rodape` | Todas as páginas da SPA e o `componentes.html` |
+| `figura` (WebP + JPG) | Destaque da página inicial e os quatro projetos |
+| `listaDefinicoes` | Números do instituto, ficha técnica dos projetos e valores de doação |
+| `listaValores` | Missão, frentes de voluntariado e primeiros passos |
+| `cartaoProjeto` | Um cartão por item de `dados/projetos.js` |
+| `chamadaApoio` | Bloco "Apoie" da página inicial e da página de projetos |
+
+O submenu de Projetos e os cartões são gerados a partir do mesmo arquivo de dados:
+incluir um projeto em `dados/projetos.js` faz ele aparecer nos dois lugares. As
+opções do campo Estado também vêm de uma lista (`dados/estados.js`).
+
+Todo texto vindo de dados passa por `escapar()` antes de entrar no template, o que
+impede que um conteúdo seja interpretado como HTML.
+
+### Módulos
+
+O JavaScript usa módulos ES (`import`/`export`), carregados com
+`<script type="module">`. Os eventos globais (menu, toast e modal) usam delegação
+no `document`, então continuam funcionando quando o cabeçalho e o conteúdo são
+renderizados de novo.
 
 ## Tags semânticas utilizadas
 
@@ -176,8 +248,8 @@ recuados sob "Projetos".
 `position: absolute` e fica escondido até o item receber `:hover` ou
 `:focus-within`, o que permite abri-lo com o mouse ou com a tecla Tab.
 
-O `menu.js` adiciona a classe `js` ao `<html>`, alterna o `aria-expanded` do botão
-e fecha o painel com Esc, com clique fora do menu ou ao escolher um link. Sem
+O `app.js` adiciona a classe `js` ao `<html>` e o `interacoes/menu.js`, alterna o `aria-expanded` do botão
+que fecha o painel com Esc, com clique fora do menu ou ao escolher um link. Sem
 JavaScript, a classe não é adicionada e o menu fica sempre visível. As transições
 são desligadas por `prefers-reduced-motion`.
 
@@ -217,10 +289,10 @@ só troca esses valores.
 
 | Componente | Classe | Onde é usado |
 |---|---|---|
-| Etiqueta (badge) | `.etiqueta`, `.etiqueta--sucesso` | Situação e área de cada projeto em `projetos.html` |
-| Alerta | `.alerta`, `.alerta--info`, `--sucesso`, `--aviso`, `--erro` | Prestação de contas (`projetos.html`) e erro de envio do cadastro |
-| Toast | `.alerta.toast` (criado por `RaizViva.toast()`) | Aviso de "Formulário limpo" no cadastro |
-| Modal | `dialog.modal` (aberto por `RaizViva.abrirModal()`) | Confirmação de cadastro com os próximos passos |
+| Etiqueta (badge) | `.etiqueta`, `.etiqueta--sucesso` | Situação e área de cada projeto na página de projetos |
+| Alerta | `.alerta`, `.alerta--info`, `--sucesso`, `--aviso`, `--erro` | Prestação de contas (página de projetos) e erro de envio do cadastro |
+| Toast | `.alerta.toast` (criado por `toast()`) | Aviso de "Formulário limpo" no cadastro |
+| Modal | `dialog.modal` (aberto por `abrirModal()`) | Confirmação de cadastro com os próximos passos |
 
 O ícone dos alertas é um SVG aplicado com `mask`, pintado com a cor da variante.
 O modal usa o `<dialog>` nativo, que prende o foco, fecha com Esc e devolve o
@@ -232,8 +304,10 @@ Novas cores: `--sinal-escuro` (#8a5a00, 5,3:1 sobre `--sinal-claro`) e
 Para um desenvolvedor back-end, basta gerar o HTML da tabela acima ou chamar:
 
 ```js
-RaizViva.toast('Cadastro enviado com sucesso.', 'sucesso');
-RaizViva.abrirModal('modal-sucesso');
+import { toast, abrirModal } from './assets/js/interacoes/feedback.js';
+
+toast('Cadastro enviado com sucesso.', 'sucesso');
+abrirModal('modal-sucesso');
 ```
 
 ## Validações nativas do formulário
@@ -256,7 +330,7 @@ RaizViva.abrirModal('modal-sucesso');
 
 ## Máscaras
 
-Implementadas em `assets/js/mascaras.js`, sem bibliotecas externas, aplicadas
+Implementadas em `assets/js/interacoes/formulario-cadastro.js`, sem bibliotecas externas, aplicadas
 pelo atributo `data-mascara` no HTML:
 
 - **CPF** — `000.000.000-00`, com validação dos dois dígitos verificadores.
@@ -299,7 +373,19 @@ servido em 112x112 para telas de alta densidade, embora exibido em 56x56.
 
 ## Como executar
 
-Abrir `index.html` em qualquer navegador. Não há build nem dependência de servidor.
+Versão publicada: https://rafaelvinicius.github.io/instituto-raiz-viva/
+
+Localmente, é preciso um servidor HTTP, porque os navegadores bloqueiam módulos ES
+abertos direto do disco (`file://`). Qualquer uma destas opções funciona, na pasta
+do projeto:
+
+```bash
+npx serve .
+# ou
+python3 -m http.server 8000
+```
+
+No VS Code, a extensão Live Server também resolve. Não há etapa de build.
 A consulta de CEP exige conexão com a internet; sem ela, o endereço é preenchido
 manualmente sem quebrar o formulário.
 

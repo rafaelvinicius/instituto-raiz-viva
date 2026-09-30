@@ -1,9 +1,14 @@
 /*
  * Instituto Raiz Viva — máscaras de entrada e validações do formulário de cadastro.
  * Sem dependências externas.
+ *
+ * Na SPA o formulário só existe depois que a página de cadastro é
+ * renderizada. Por isso, todo o código fica dentro de
+ * iniciarFormularioCadastro(), chamada pela view em aoMontar().
  */
-(function () {
-  'use strict';
+import { toast, abrirModal } from './feedback.js';
+
+export const iniciarFormularioCadastro = function (raiz) {
 
   /* ------------------------------------------------------------------ *
    * 1. Máscaras de entrada
@@ -54,7 +59,7 @@
     }
   };
 
-  var camposComMascara = document.querySelectorAll('[data-mascara]');
+  var camposComMascara = raiz.querySelectorAll('[data-mascara]');
 
   Array.prototype.forEach.call(camposComMascara, function (campo) {
     var tipo = campo.getAttribute('data-mascara');
@@ -222,19 +227,14 @@
       limpezaAutomatica = false;
 
       // Sucesso: modal de confirmação com os próximos passos
-      if (window.RaizViva) {
-        window.RaizViva.abrirModal('modal-sucesso');
-      } else if (retorno) {
-        retorno.textContent = 'Cadastro enviado. Entramos em contato em até dois dias úteis.';
-        retorno.className = 'retorno alerta alerta--sucesso';
-      }
+      abrirModal('modal-sucesso');
     });
 
     formulario.addEventListener('reset', function () {
       formulario.classList.remove('formulario--verificado');
       // Limpeza pedida pela pessoa: aviso discreto em toast
-      if (!limpezaAutomatica && window.RaizViva) {
-        window.RaizViva.toast('Formulário limpo. Você pode começar de novo.', 'info');
+      if (!limpezaAutomatica) {
+        toast('Formulário limpo. Você pode começar de novo.', 'info');
       }
       // O evento acontece antes de os campos serem limpos
       setTimeout(atualizarBotaoEnviar, 0);
@@ -250,4 +250,4 @@
       }
     });
   }
-}());
+};
