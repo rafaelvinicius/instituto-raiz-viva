@@ -1,11 +1,11 @@
 /* ==================================================================
-   Verificação de consistência do formulário de cadastro
+   Regras de consistência do cadastro
    ------------------------------------------------------------------
-   1. REGRAS: uma função por campo. Recebe o valor e os demais dados
-      do formulário e devolve '' (válido) ou a mensagem de erro.
-   2. EXIBIÇÃO: aplica as classes .campo--erro / .campo--valido no
-      contêiner do campo, injeta a mensagem de erro no HTML e mantém
-      os atributos de acessibilidade (aria-invalid, aria-describedby).
+   Lógica pura: não acessa o DOM, a rede nem o armazenamento.
+   Cada regra recebe o valor de um campo e os demais dados do
+   formulário (um objeto comum) e devolve '' (válido) ou a mensagem
+   de erro. Por não depender do navegador, o arquivo pode ser testado
+   direto no Node (testes/regras.test.mjs).
    ================================================================== */
 
 import { calcularIdade } from '../utils/datas.js';
@@ -23,7 +23,7 @@ const REGEX = {
 };
 
 const IDADE_MINIMA = 18;
-const TAMANHO_MENSAGEM = 500;
+export const LIMITE_MENSAGEM = 500;
 
 /* ---------- Funções de apoio ------------------------------------- */
 
@@ -53,9 +53,10 @@ export const dataMaximaNascimento = (hoje = new Date()) => {
   return `${ano}-${mes}-${dia}`;
 };
 
-const exigeDoacao = (perfil) => perfil === 'doador' || perfil === 'ambos';
+/** O valor da doação só é obrigatório para quem vai doar. */
+export const exigeDoacao = (perfil) => perfil === 'doador' || perfil === 'ambos';
 
-/* ---------- 1. Regras -------------------------------------------- */
+/* ---------- Regras por campo ------------------------------------- */
 
 export const regras = {
   nome: (valor) => {
@@ -127,101 +128,21 @@ export const regras = {
   },
 
   mensagem: (valor) =>
-    valor.length > TAMANHO_MENSAGEM ? `Use no máximo ${TAMANHO_MENSAGEM} caracteres.` : '',
+    valor.length > LIMITE_MENSAGEM ? `Use no máximo ${LIMITE_MENSAGEM} caracteres.` : '',
 
   termos: (valor) => (valor ? '' : 'É preciso aceitar a política de privacidade.')
 };
 
-/* ---------- 2. Exibição ------------------------------------------ */
-
-/** Lê o formulário como objeto { nome: valor }, sem espaços nas pontas. */
-export const lerDados = (formulario) => {
-  const dados = {};
-  new FormData(formulario).forEach((valor, nome) => {
-    dados[nome] = typeof valor === 'string' ? valor.trim() : valor;
-  });
-  return dados;
-};
-
-const elementosDoCampo = (formulario, nome) =>
-  Array.from(formulario.querySelectorAll(`[name="${nome}"]`));
-
-// O grupo de rádio usa o fieldset; os demais, a div .campo ou .opcao
-const conteinerDoCampo = (elemento) =>
-  elemento.closest('.grupo-opcoes') || elemento.closest('.campo') || elemento.closest('.opcao');
-
-const idDoErro = (nome) => `erro-${nome}`;
-
-const vincularDescricao = (elemento, id, ativo) => {
-  const ids = (elemento.getAttribute('aria-describedby') || '').split(' ').filter(Boolean);
-  const semErro = ids.filter((item) => item !== id);
-  const novos = ativo ? [...semErro, id] : semErro;
-
-  if (novos.length) {
-    elemento.setAttribute('aria-describedby', novos.join(' '));
-  } else {
-    elemento.removeAttribute('aria-describedby');
-  }
-};
-
-/**
- * Mostra o resultado da verificação de um campo.
- * @param {string} mensagem  '' quando o campo está correto
- * @param {boolean} preenchido  campos opcionais vazios ficam neutros
- */
-export const exibirEstado = (formulario, nome, mensagem, preenchido) => {
-  const elementos = elementosDoCampo(formulario, nome);
-  if (!elementos.length) return;
-
-  const conteiner = conteinerDoCampo(elementos[0]);
-  const id = idDoErro(nome);
-
-  formulario.querySelector(`#${id}`)?.remove();
-
-  conteiner.classList.toggle('campo--erro', Boolean(mensagem));
-  conteiner.classList.toggle('campo--valido', !mensagem && preenchido);
-
-  elementos.forEach((elemento) => {
-    // setCustomValidity mantém a API nativa (checkValidity) coerente com a regra
-    elemento.setCustomValidity(mensagem);
-    if (mensagem) {
-      elemento.setAttribute('aria-invalid', 'true');
-    } else {
-      elemento.removeAttribute('aria-invalid');
-    }
-    vincularDescricao(elemento, id, Boolean(mensagem));
-  });
-
-  if (mensagem) {
-    const aviso = document.createElement('p');
-    aviso.id = id;
-    aviso.className = 'campo__erro';
-    aviso.textContent = mensagem;
-    conteiner.append(aviso);
-  }
-};
-
-/** Verifica um campo pelo nome, exibe o resultado e devolve a mensagem. */
-export const validarCampo = (formulario, nome) => {
+/** Aplica uma regra. Devolve '' para campos sem regra. */
+export const verificarValor = (nome, dados) => {
   const regra = regras[nome];
-  if (!regra) return '';
-
-  const dados = lerDados(formulario);
-  const valor = dados[nome] ?? '';
-  const mensagem = regra(valor, dados);
-
-  exibirEstado(formulario, nome, mensagem, valor !== '');
-  return mensagem;
+  return regra ? regra(dados[nome] ?? '', dados) : '';
 };
 
-/** Verifica todos os campos com regra. Devolve os nomes dos que têm erro. */
-export const validarFormulario = (formulario) =>
-  Object.keys(regras).filter((nome) => validarCampo(formulario, nome) !== '');
-
-/** Remove todas as marcações de erro e de sucesso. */
-export const limparEstados = (formulario) => {
-  Object.keys(regras).forEach((nome) => exibirEstado(formulario, nome, '', false));
-};
-
-export const campoExigeValor = exigeDoacao;
-export const LIMITE_MENSAGEM = TAMANHO_MENSAGEM;
+/** Verifica todos os campos. Devolve { campo: mensagem } só com os que falharam. */
+export const verificarDados = (dados) =>
+  Object.fromEntries(
+    Object.keys(regras)
+      .map((nome) => [nome, verificarValor(nome, dados)])
+      .filter(([, mensagem]) => mensagem !== '')
+  );

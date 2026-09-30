@@ -11,70 +11,44 @@
      digitar, e some assim que o valor é corrigido;
    - ao enviar (submit): todos os campos de uma vez.
 
-   O preenchimento é salvo como rascunho no localStorage a cada
-   alteração e restaurado quando a página abre. Os cadastros enviados
-   ficam num histórico exibido ao lado do formulário.
+   O preenchimento é salvo como rascunho a cada alteração e
+   restaurado quando a página abre. Os cadastros enviados ficam num
+   histórico exibido ao lado do formulário.
+
+   Este arquivo só coordena: as regras ficam em regras/, o acesso à
+   rede e ao localStorage em servicos/ e o estado visual dos campos
+   em campos-formulario.js.
    ================================================================== */
 
 import { toast, abrirModal } from './feedback.js';
-import { aplicarMascaras, somenteNumeros } from './mascaras.js';
+import { aplicarMascaras } from './mascaras.js';
 import {
+  lerDados,
+  preencherCampos,
   validarCampo,
   validarFormulario,
-  limparEstados,
-  dataMaximaNascimento,
-  campoExigeValor,
-  LIMITE_MENSAGEM,
+  limparEstados
+} from './campos-formulario.js';
+import {
   regras,
-  lerDados
-} from './validacao.js';
+  dataMaximaNascimento,
+  exigeDoacao,
+  LIMITE_MENSAGEM
+} from '../regras/validacao.js';
 import {
   salvarRascunho,
   lerRascunho,
-  restaurarRascunho,
   descartarRascunho,
   lerCadastros,
   registrarCadastro,
   apagarCadastros
-} from './persistencia-cadastro.js';
+} from '../servicos/cadastros.js';
+import { consultarCep } from '../servicos/viacep.js';
 import { historicoCadastros } from '../componentes/historico-cadastros.js';
 import { carregarDatas, formatarDataHora } from '../utils/datas.js';
 
 const AJUDA_CEP = 'Endereço, cidade e estado são preenchidos automaticamente.';
 const ESPERA_SALVAMENTO = 400; // ms sem digitar antes de gravar o rascunho
-
-
-/* ---------- Busca de endereço pelo CEP (ViaCEP) ------------------ */
-
-const buscarEndereco = async (formulario, statusCep, aoPreencher) => {
-  const cep = somenteNumeros(formulario.cep.value);
-  if (cep.length !== 8) return;
-
-  statusCep.textContent = 'Buscando endereço...';
-
-  try {
-    const resposta = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-    const dados = await resposta.json();
-
-    if (dados.erro) {
-      statusCep.textContent = 'CEP não encontrado. Preencha o endereço manualmente.';
-      return;
-    }
-
-    if (dados.logradouro) formulario.endereco.value = `${dados.logradouro}, `;
-    if (dados.localidade) formulario.cidade.value = dados.localidade;
-    if (dados.uf) formulario.uf.value = dados.uf;
-
-    statusCep.textContent = 'Endereço preenchido. Informe o número.';
-    aoPreencher();
-
-    const { endereco } = formulario;
-    endereco.focus();
-    endereco.setSelectionRange(endereco.value.length, endereco.value.length);
-  } catch {
-    statusCep.textContent = 'Não foi possível consultar o CEP. Preencha o endereço manualmente.';
-  }
-};
 
 /* ---------- Eventos ---------------------------------------------- */
 
@@ -117,7 +91,7 @@ export const iniciarFormularioCadastro = (raiz) => {
   };
 
   const atualizarValorObrigatorio = () => {
-    formulario.valor.required = campoExigeValor(formulario.perfil.value);
+    formulario.valor.required = exigeDoacao(formulario.perfil.value);
   };
 
   /* ---- localStorage ---- */
@@ -125,7 +99,7 @@ export const iniciarFormularioCadastro = (raiz) => {
   // Grava só depois de uma pausa na digitação, e não a cada tecla
   const agendarRascunho = () => {
     clearTimeout(temporizadorRascunho);
-    temporizadorRascunho = setTimeout(() => salvarRascunho(formulario), ESPERA_SALVAMENTO);
+    temporizadorRascunho = setTimeout(() => salvarRascunho(lerDados(formulario)), ESPERA_SALVAMENTO);
   };
 
   const cancelarRascunho = () => {
@@ -141,7 +115,7 @@ export const iniciarFormularioCadastro = (raiz) => {
     const rascunho = lerRascunho();
     if (!rascunho) return;
 
-    const restaurados = restaurarRascunho(formulario, rascunho);
+    const restaurados = preencherCampos(formulario, rascunho.campos);
     if (!restaurados.length) return;
 
     // Os campos recuperados já aparecem verificados (verde ou vermelho)
@@ -151,6 +125,46 @@ export const iniciarFormularioCadastro = (raiz) => {
     toast(`Recuperamos o preenchimento salvo em ${formatarDataHora(rascunho.salvoEm)}. Por segurança, o CPF precisa ser digitado de novo.`, 'info');
   };
 
+  /* ---- CEP (serviço ViaCEP) ---- */
+
+  const preencherEndereco = async () => {
+    if (formulario.cep.value.replace(/\D/g, '').length !== 8) return;
+
+    statusCep.textContent = 'Buscando endereço...';
+
+    try {
+      const endereco = await consultarCep(formulario.cep.value);
+
+      // A resposta pode chegar depois que a pessoa já saiu da página de
+      // cadastro. Nesse caso o formulário não está mais no DOM e nada deve
+      // ser preenchido, focado ou salvo.
+      if (!formulario.isConnected) return;
+
+      if (!endereco) {
+        statusCep.textContent = 'CEP não encontrado. Preencha o endereço manualmente.';
+        return;
+      }
+
+      preencherCampos(formulario, {
+        endereco: endereco.logradouro ? `${endereco.logradouro}, ` : '',
+        cidade: endereco.cidade,
+        uf: endereco.uf
+      });
+      statusCep.textContent = 'Endereço preenchido. Informe o número.';
+
+      // Cidade e estado preenchidos pelo CEP já aparecem verificados
+      ['cidade', 'uf'].forEach((campo) => { visitados.add(campo); verificar(campo); });
+      agendarRascunho();
+
+      const campoEndereco = formulario.endereco;
+      campoEndereco.focus();
+      campoEndereco.setSelectionRange(campoEndereco.value.length, campoEndereco.value.length);
+    } catch {
+      if (!formulario.isConnected) return;
+      statusCep.textContent = 'Não foi possível consultar o CEP. Preencha o endereço manualmente.';
+    }
+  };
+
   // Delegação: um listener no formulário atende todos os campos
   formulario.addEventListener('focusout', (evento) => {
     const { name } = evento.target;
@@ -158,12 +172,7 @@ export const iniciarFormularioCadastro = (raiz) => {
     visitados.add(name);
     verificar(name);
 
-    if (name === 'cep') {
-      buscarEndereco(formulario, statusCep, () => {
-        // Campos preenchidos pelo CEP já aparecem verificados
-        ['cidade', 'uf'].forEach((campo) => { visitados.add(campo); verificar(campo); });
-      });
-    }
+    if (name === 'cep') preencherEndereco();
   });
 
   formulario.addEventListener('input', (evento) => {

@@ -1,73 +1,57 @@
 /* ==================================================================
-   Dados do cadastro guardados no navegador
+   Serviço de dados do cadastro (sobre o localStorage)
    ------------------------------------------------------------------
-   Duas chaves no localStorage:
+   Trabalha só com objetos comuns: não lê nem preenche o formulário.
+   Duas chaves:
 
    raizviva:rascunho-cadastro  (objeto)
      { salvoEm: "2026-09-29T21:10:00.000Z", campos: { nome: "...", ... } }
-     O que a pessoa está digitando. É gravado a cada alteração e
-     restaurado quando a página de cadastro abre, para que um F5 ou
-     o fechamento da aba não apaguem o preenchimento.
+     O que a pessoa está digitando, para não se perder num F5 ou no
+     fechamento da aba.
 
    raizviva:cadastros  (array de objetos)
      [{ nome, email, perfil, valor, enviadoEm }, ...]
-     Cadastros concluídos neste navegador, exibidos na página.
+     Cadastros concluídos neste navegador.
 
    Por privacidade (LGPD), o CPF e o aceite dos termos nunca são
    salvos: o CPF é um dado sensível e o aceite deve ser dado de novo
    a cada envio. O histórico guarda só o necessário para exibição.
    ================================================================== */
 
-import { salvar, ler, remover } from '../utils/armazenamento.js';
+import { salvar, ler, remover } from './armazenamento.js';
 
 const CHAVE_RASCUNHO = 'rascunho-cadastro';
 const CHAVE_CADASTROS = 'cadastros';
-const CAMPOS_NAO_SALVOS = ['cpf', 'termos'];
+
+export const CAMPOS_NAO_SALVOS = ['cpf', 'termos'];
 
 const ehObjeto = (valor) => valor !== null && typeof valor === 'object' && !Array.isArray(valor);
 
 /* ---------- Rascunho --------------------------------------------- */
 
-export const salvarRascunho = (formulario) => {
-  const campos = {};
-  new FormData(formulario).forEach((valor, nome) => {
-    if (!CAMPOS_NAO_SALVOS.includes(nome)) campos[nome] = valor;
-  });
+/** Grava o rascunho. Se não houver nada preenchido, apaga o anterior. */
+export const salvarRascunho = (campos) => {
+  const permitidos = Object.fromEntries(
+    Object.entries(campos).filter(([nome]) => !CAMPOS_NAO_SALVOS.includes(nome))
+  );
 
-  const temConteudo = Object.values(campos).some((valor) => valor !== '');
+  const temConteudo = Object.values(permitidos).some((valor) => valor !== '');
   if (!temConteudo) {
     remover(CHAVE_RASCUNHO);
     return;
   }
 
-  salvar(CHAVE_RASCUNHO, { salvoEm: new Date().toISOString(), campos });
+  salvar(CHAVE_RASCUNHO, { salvoEm: new Date().toISOString(), campos: permitidos });
 };
 
 /** Lê o rascunho salvo. Devolve null se não houver um válido. */
-export const lerRascunho = () =>
-  ler(CHAVE_RASCUNHO, null, (valor) => ehObjeto(valor) && ehObjeto(valor.campos));
+export const lerRascunho = () => {
+  const rascunho = ler(CHAVE_RASCUNHO, null, (valor) => ehObjeto(valor) && ehObjeto(valor.campos));
+  if (!rascunho) return null;
 
-/** Devolve os valores do rascunho aos campos. Retorna os nomes restaurados. */
-export const restaurarRascunho = (formulario, rascunho) => {
-  const restaurados = [];
-
-  Object.entries(rascunho.campos).forEach(([nome, valor]) => {
-    if (CAMPOS_NAO_SALVOS.includes(nome) || typeof valor !== 'string' || valor === '') return;
-
-    const elemento = formulario.elements[nome];
-    if (!elemento) return;
-
-    if (elemento instanceof RadioNodeList) {
-      elemento.value = valor;                   // marca o rádio com esse valor
-    } else if (elemento.type === 'checkbox') {
-      elemento.checked = true;
-    } else {
-      elemento.value = valor;
-    }
-    restaurados.push(nome);
-  });
-
-  return restaurados;
+  // Mesmo que alguém edite o armazenamento à mão, campos sensíveis não voltam
+  CAMPOS_NAO_SALVOS.forEach((nome) => delete rascunho.campos[nome]);
+  return rascunho;
 };
 
 export const descartarRascunho = () => remover(CHAVE_RASCUNHO);
@@ -77,8 +61,8 @@ export const descartarRascunho = () => remover(CHAVE_RASCUNHO);
 export const lerCadastros = () => ler(CHAVE_CADASTROS, [], Array.isArray);
 
 /**
- * Acrescenta um cadastro ao histórico. Um novo envio com o mesmo e-mail
- * substitui o anterior, para não duplicar a mesma pessoa.
+ * Acrescenta um cadastro ao início do histórico. Um novo envio com o
+ * mesmo e-mail substitui o anterior, para não duplicar a mesma pessoa.
  */
 export const registrarCadastro = (dados) => {
   const novo = {

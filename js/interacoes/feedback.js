@@ -1,84 +1,84 @@
 /* ==================================================================
- Instituto Raiz Viva — componentes de feedback (toast e modal)
- Uso (módulo ES):
-   import { toast, abrirModal } from './interacoes/feedback.js';
-   toast('Mensagem', 'sucesso' | 'aviso' | 'erro' | 'info');
-   abrirModal('id-do-dialog');
- Ou, sem escrever JavaScript, direto no HTML:
-   <button data-toast="Mensagem" data-toast-tipo="sucesso">
-   <button data-abrir-modal="id-do-dialog">
-   <button data-fechar-modal>          (dentro do dialog)
- ================================================================== */
+   Componentes de feedback: toast e modal
+   ------------------------------------------------------------------
+   Uso em JavaScript:
+     import { toast, abrirModal } from './interacoes/feedback.js';
+     toast('Mensagem', 'sucesso' | 'aviso' | 'erro' | 'info');
+     abrirModal('id-do-dialog');
+   Ou direto no HTML, sem escrever JavaScript:
+     <button data-toast="Mensagem" data-toast-tipo="sucesso">
+     <button data-abrir-modal="id-do-dialog">
+     <button data-fechar-modal>          (dentro do dialog)
+   ================================================================== */
 
-var TEMPO_TOAST = 5000;
-var regiao = null;
+const TEMPO_TOAST = 5000;       // ms até o toast sumir sozinho
+const TEMPO_SAIDA = 250;        // ms da animação de saída (igual ao CSS)
 
-// Região única onde os toasts aparecem; role="status" faz o leitor de
+let regiao = null;
+
+// Região única onde os toasts aparecem. role="status" faz o leitor de
 // tela anunciar a mensagem sem tirar o foco do que a pessoa fazia.
-var obterRegiao = function () {
-  if (!regiao) {
+const obterRegiao = () => {
+  if (!regiao || !regiao.isConnected) {
     regiao = document.createElement('div');
     regiao.className = 'toasts';
     regiao.setAttribute('role', 'status');
     regiao.setAttribute('aria-live', 'polite');
-    document.body.appendChild(regiao);
+    document.body.append(regiao);
   }
   return regiao;
 };
 
-export const toast = function (mensagem, tipo) {
-  var item = document.createElement('div');
-  item.className = 'alerta alerta--' + (tipo || 'info') + ' toast';
+export const toast = (mensagem, tipo = 'info') => {
+  const item = document.createElement('div');
+  item.className = `alerta alerta--${tipo} toast`;
 
-  var texto = document.createElement('p');
+  const texto = document.createElement('p');
   texto.className = 'alerta__conteudo';
   texto.textContent = mensagem;
 
-  var fechar = document.createElement('button');
+  const fechar = document.createElement('button');
   fechar.type = 'button';
   fechar.className = 'botao-fechar';
   fechar.setAttribute('aria-label', 'Fechar notificação');
-  fechar.innerHTML = '&times;';
+  fechar.textContent = '×';
 
-  item.appendChild(texto);
-  item.appendChild(fechar);
-  obterRegiao().appendChild(item);
+  item.append(texto, fechar);
+  obterRegiao().append(item);
 
-  var remover = function () {
-    if (!item.parentNode) { return; }
+  const remover = () => {
+    if (!item.isConnected) return;
     item.classList.add('toast--saindo');
-    setTimeout(function () {
-      if (item.parentNode) { item.parentNode.removeChild(item); }
-    }, 250);
+    setTimeout(() => item.remove(), TEMPO_SAIDA);
   };
 
   fechar.addEventListener('click', remover);
   setTimeout(remover, TEMPO_TOAST);
 };
 
-// O <dialog> nativo já prende o foco dentro do modal, fecha com Esc e
+// O <dialog> nativo prende o foco dentro do modal, fecha com Esc e
 // devolve o foco ao elemento que o abriu.
-export const abrirModal = function (id) {
-  var modal = document.getElementById(id);
-  if (modal && typeof modal.showModal === 'function') {
+export const abrirModal = (id) => {
+  const modal = document.getElementById(id);
+  if (typeof modal?.showModal === 'function') {
     modal.showModal();
   }
 };
 
 // Ligado uma única vez, no document: funciona também para botões e
 // modais que aparecem depois, quando a SPA troca de página.
-export const iniciarFeedback = function () {
-  document.addEventListener('click', function (evento) {
-    var alvo = evento.target;
+export const iniciarFeedback = () => {
+  document.addEventListener('click', (evento) => {
+    const alvo = evento.target;
 
-    var abrir = alvo.closest('[data-abrir-modal]');
+    const abrir = alvo.closest('[data-abrir-modal]');
     if (abrir) {
-      abrirModal(abrir.getAttribute('data-abrir-modal'));
+      abrirModal(abrir.dataset.abrirModal);
       return;
     }
 
-    var fechar = alvo.closest('[data-fechar-modal]');
-    if (fechar && fechar.closest('dialog')) {
+    const fechar = alvo.closest('[data-fechar-modal]');
+    if (fechar?.closest('dialog')) {
       fechar.closest('dialog').close();
       return;
     }
@@ -89,9 +89,9 @@ export const iniciarFeedback = function () {
       return;
     }
 
-    var gatilhoToast = alvo.closest('[data-toast]');
+    const gatilhoToast = alvo.closest('[data-toast]');
     if (gatilhoToast) {
-      toast(gatilhoToast.getAttribute('data-toast'), gatilhoToast.getAttribute('data-toast-tipo'));
+      toast(gatilhoToast.dataset.toast, gatilhoToast.dataset.toastTipo);
     }
   });
 };

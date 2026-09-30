@@ -6,7 +6,8 @@ educação ambiental, desenvolvida na disciplina de Desenvolvimento Front-End:
 - **Experiência Prática I** — estrutura em HTML5 semântico e formulário com validações.
 - **Experiência Prática II** — estilização com CSS3, a partir de um design system em variáveis CSS.
 - **Experiência Prática III** — interatividade com JavaScript: Single Page Application,
-  templates dinâmicos, eventos, validação e armazenamento local (em andamento).
+  templates dinâmicos, eventos, validação, armazenamento local, biblioteca
+  externa e código modular.
 
 As versões entregues ficam marcadas com as tags `ep1` e `ep2`.
 
@@ -36,12 +37,20 @@ instituto-raiz-viva/
     ├── componentes/        Templates reutilizáveis: cabecalho, rodape, figura, cartao,
     │                       cartao-projeto, lista-definicoes, lista-valores, chamada-apoio
     ├── dados/              Conteúdo estruturado: projetos, instituto, navegacao, estados
-    ├── interacoes/         Comportamentos: menu, feedback (toast/modal), mascaras,
-    │                       validacao, persistencia-cadastro e formulario-cadastro
+    ├── interacoes/         DOM e eventos: menu, feedback (toast/modal), mascaras,
+    │                       campos-formulario e formulario-cadastro
+    ├── regras/
+    │   └── validacao.js    Regras de consistência (lógica pura, sem DOM)
+    ├── servicos/           Rede e armazenamento, sem DOM
+    │   ├── armazenamento.js  salvar() / ler() / remover() no localStorage
+    │   ├── cadastros.js    Rascunho e histórico de cadastros
+    │   └── viacep.js       Consulta de CEP na API ViaCEP
     └── utils/
         ├── html.js         escapar() e renderizarLista()
-        ├── armazenamento.js  salvar() / ler() / remover() no localStorage
         └── datas.js        Integração com a biblioteca Day.js (com alternativa nativa)
+
+testes/
+└── modulos.test.mjs        Testes automatizados das regras, máscaras e serviços
 ```
 
 ## Single Page Application (Experiência Prática III)
@@ -102,9 +111,27 @@ impede que um conteúdo seja interpretado como HTML.
 ### Módulos
 
 O JavaScript usa módulos ES (`import`/`export`), carregados com
-`<script type="module">`. Os eventos globais (menu, toast e modal) usam delegação
-no `document`, então continuam funcionando quando o cabeçalho e o conteúdo são
-renderizados de novo.
+`<script type="module">`. Cada pasta tem uma responsabilidade, e as dependências
+seguem um sentido só:
+
+```
+app.js → roteador / rotas → views → componentes + interacoes
+interacoes → regras + servicos + utils
+servicos, regras, dados, utils → não importam nada das camadas de cima
+```
+
+| Camada | Pode usar o DOM? | Acessa rede ou localStorage? |
+|---|---|---|
+| `views/`, `componentes/` | Só geram strings de HTML | Não |
+| `interacoes/` | Sim (eventos, classes, foco) | Não, pede aos serviços |
+| `regras/` | Não | Não |
+| `servicos/` | Não | Sim, é o único lugar que acessa |
+| `dados/`, `utils/` | Não | Não (exceto o carregamento do Day.js) |
+
+Não há importações circulares nem variáveis globais. Os módulos trocam
+informação por parâmetros e retornos de funções. Os eventos globais (menu, toast
+e modal) usam delegação no `document`, então continuam funcionando quando o
+cabeçalho e o conteúdo são renderizados de novo.
 
 ## Tags semânticas utilizadas
 
@@ -316,7 +343,8 @@ abrirModal('modal-sucesso');
 
 Os atributos HTML da EP1 (`required`, `pattern`, `min`, `max`...) continuam no
 formulário. Na EP3, a verificação passou a ser feita por JavaScript, em
-`js/interacoes/validacao.js`, com uma regra por campo:
+`js/regras/validacao.js`, com uma regra por campo. A exibição do resultado na
+tela fica em `js/interacoes/campos-formulario.js`:
 
 | Campo | Critério | Mensagem quando falha |
 |---|---|---|
@@ -352,7 +380,7 @@ precisam de correção e o foco vai para o primeiro deles. A regra também chama
 | `raizviva:rascunho-cadastro` | objeto `{ salvoEm, campos }` | 400 ms depois de cada alteração no formulário | Ao abrir a página de cadastro: devolve os valores aos campos |
 | `raizviva:cadastros` | array de `{ nome, email, perfil, valor, enviadoEm }` | No envio válido (um novo envio com o mesmo e-mail substitui o anterior) | Ao abrir a página de cadastro: lista os cadastros ao lado do formulário |
 
-`js/utils/armazenamento.js` concentra o acesso: `salvar()` converte com
+`js/servicos/armazenamento.js` concentra o acesso: `salvar()` converte com
 `JSON.stringify` e chama `setItem`; `ler()` chama `getItem`, converte com
 `JSON.parse` e confere o formato (objeto ou array). Se o dado estiver corrompido,
 em outro formato ou se o navegador bloquear o armazenamento, a função devolve um
@@ -445,6 +473,32 @@ python3 -m http.server 8000
 No VS Code, a extensão Live Server também resolve. Não há etapa de build.
 A consulta de CEP exige conexão com a internet; sem ela, o endereço é preenchido
 manualmente sem quebrar o formulário.
+
+## Testes
+
+As regras, as máscaras e os serviços não dependem do navegador, então têm testes
+automatizados com o test runner nativo do Node (versão 18 ou superior, sem
+instalar nada):
+
+```bash
+node --test testes/modulos.test.mjs
+```
+
+São 15 testes, que cobrem: CPF válido e inválido, formatos de e-mail, telefone e
+CEP, idade mínima, a regra condicional da doação, as máscaras, o `escapar()`, o
+rascunho sem CPF, o histórico sem duplicidade, a leitura de JSON corrompido e as
+respostas do ViaCEP (com `fetch` simulado).
+
+### Falhas encontradas nos testes da interface e corrigidas
+
+| Problema | Correção |
+|---|---|
+| Ao sair da página de cadastro enquanto o CEP era consultado, a resposta preenchia e focava um formulário que já não estava na tela e gravava esse estado no rascunho | `formulario.isConnected` é conferido depois do `await`; se a página mudou, nada é feito |
+| Digitar "1e" no campo de doação: o navegador entrega `value = ''` e a regra aceitava como vazio | Checagem de `validity.badInput` antes da regra, com mensagem própria (vale também para data incompleta) |
+| Contorno de foco no título a cada troca de página | `[tabindex="-1"]:focus { outline: none; }` |
+| Data máxima de nascimento fixa em 31/12/2008, que bloqueava quem já tinha 18 anos | `max` calculado a partir de hoje |
+| Esse cálculo usava `toISOString()` (UTC): depois das 21h em São Paulo, a data saía adiantada em um dia | Data montada com os métodos locais (`getFullYear`, `getMonth`, `getDate`) |
+| Sem acesso ao CDN, o Day.js não carrega | `import()` dinâmico com alternativa nativa (`Date`/`Intl`) |
 
 ## Validação W3C
 
