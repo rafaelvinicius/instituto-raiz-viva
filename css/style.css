@@ -781,6 +781,42 @@ textarea:disabled {
   flex-wrap: wrap;
 }
 
+/* ---- Histórico de cadastros (dados do localStorage) ---- */
+
+.historico:empty {
+  display: none;
+}
+
+.historico {
+  margin-top: var(--espaco-5);
+  padding: var(--espaco-4);
+  background-color: var(--papel-alto);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+}
+
+.historico h3 {
+  font-size: var(--tamanho-base);
+}
+
+.historico__lista {
+  list-style: none;
+  margin: 0 0 var(--espaco-4);
+  padding: 0;
+}
+
+.historico__lista li {
+  display: flex;
+  flex-direction: column;
+  padding: var(--espaco-3) 0;
+  border-bottom: 1px solid var(--borda);
+}
+
+.historico__lista small {
+  color: var(--tinta-fraca);
+  font-size: var(--tamanho-pequeno);
+}
+
 .ajuda {
   display: block;
   margin-top: var(--espaco-1);

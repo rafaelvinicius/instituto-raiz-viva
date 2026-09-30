@@ -37,9 +37,10 @@ instituto-raiz-viva/
     │                       cartao-projeto, lista-definicoes, lista-valores, chamada-apoio
     ├── dados/              Conteúdo estruturado: projetos, instituto, navegacao, estados
     ├── interacoes/         Comportamentos: menu, feedback (toast/modal), mascaras,
-    │                       validacao e formulario-cadastro (liga os eventos do formulário)
+    │                       validacao, persistencia-cadastro e formulario-cadastro
     └── utils/
-        └── html.js         escapar() e renderizarLista()
+        ├── html.js         escapar() e renderizarLista()
+        └── armazenamento.js  salvar() / ler() / remover() no localStorage
 ```
 
 ## Single Page Application (Experiência Prática III)
@@ -342,6 +343,24 @@ e uma mensagem `.campo__erro` é inserida logo abaixo. O campo recebe
 o leitor de tela a anuncie. No envio com erro, um alerta resume quantos campos
 precisam de correção e o foco vai para o primeiro deles. A regra também chama
 `setCustomValidity()`, mantendo a validação nativa coerente com o JavaScript.
+
+## Dados salvos no navegador (localStorage)
+
+| Chave | Formato | Quando grava | Quando lê |
+|---|---|---|---|
+| `raizviva:rascunho-cadastro` | objeto `{ salvoEm, campos }` | 400 ms depois de cada alteração no formulário | Ao abrir a página de cadastro: devolve os valores aos campos |
+| `raizviva:cadastros` | array de `{ nome, email, perfil, valor, enviadoEm }` | No envio válido (um novo envio com o mesmo e-mail substitui o anterior) | Ao abrir a página de cadastro: lista os cadastros ao lado do formulário |
+
+`js/utils/armazenamento.js` concentra o acesso: `salvar()` converte com
+`JSON.stringify` e chama `setItem`; `ler()` chama `getItem`, converte com
+`JSON.parse` e confere o formato (objeto ou array). Se o dado estiver corrompido,
+em outro formato ou se o navegador bloquear o armazenamento, a função devolve um
+valor padrão e a página continua funcionando.
+
+O rascunho é apagado no envio e no botão "Limpar formulário", e o histórico tem
+o botão "Apagar histórico". Por privacidade, o CPF e o aceite dos termos nunca
+são gravados, e o histórico guarda só o necessário para ser exibido. Os textos
+lidos do armazenamento passam por `escapar()` antes de entrar no HTML.
 
 ## Máscaras
 

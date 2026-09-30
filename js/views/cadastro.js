@@ -32,6 +32,11 @@ export const cadastro = {
         dados são usados apenas para contato e emissão de recibo de doação, conforme a
         Lei Geral de Proteção de Dados.
       </p>
+      <p>
+        O que você digita fica salvo neste navegador até o envio, para não se perder
+        se a página for fechada. O CPF não é salvo.
+      </p>
+      <div id="historico-cadastros" class="historico" aria-live="polite"></div>
     </section>
 
     <section class="formulario">
