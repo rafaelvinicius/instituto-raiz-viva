@@ -10,6 +10,7 @@ import { cabecalho } from './componentes/cabecalho.js';
 import { rodape } from './componentes/rodape.js';
 import { iniciarMenu } from './interacoes/menu.js';
 import { iniciarFeedback } from './interacoes/feedback.js';
+import { carregarDatas } from './utils/datas.js';
 
 // O CSS só esconde a lista do menu no celular quando esta classe existe.
 document.documentElement.classList.add('js');
@@ -22,6 +23,9 @@ document.getElementById('rodape').innerHTML = rodape();
 
 iniciarMenu();
 iniciarFeedback();
+
+// Biblioteca externa (Day.js): começa a carregar sem travar a renderização
+carregarDatas();
 
 iniciarRoteador({
   rotas,

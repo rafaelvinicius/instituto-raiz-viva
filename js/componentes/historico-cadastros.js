@@ -5,15 +5,13 @@
    ================================================================== */
 
 import { escapar, renderizarLista } from '../utils/html.js';
+import { formatarDataHora, tempoDecorrido } from '../utils/datas.js';
 
 const PERFIS = {
   doador: 'Doação',
   voluntario: 'Voluntariado',
   ambos: 'Doação e voluntariado'
 };
-
-const formatarData = (iso) =>
-  new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
 
 const itemCadastro = (cadastro) => {
   const perfil = PERFIS[cadastro.perfil] ?? 'Participação';
@@ -23,7 +21,7 @@ const itemCadastro = (cadastro) => {
     <li>
       <strong>${escapar(cadastro.nome)}</strong>
       <span>${escapar(perfil)}${valor}</span>
-      <small>Enviado em <time datetime="${escapar(cadastro.enviadoEm)}">${escapar(formatarData(cadastro.enviadoEm))}</time></small>
+      <small>Enviado <time datetime="${escapar(cadastro.enviadoEm)}" title="${escapar(formatarDataHora(cadastro.enviadoEm))}">${escapar(tempoDecorrido(cadastro.enviadoEm))}</time></small>
     </li>`;
 };
 

@@ -38,12 +38,11 @@ import {
   apagarCadastros
 } from './persistencia-cadastro.js';
 import { historicoCadastros } from '../componentes/historico-cadastros.js';
+import { carregarDatas, formatarDataHora } from '../utils/datas.js';
 
 const AJUDA_CEP = 'Endereço, cidade e estado são preenchidos automaticamente.';
 const ESPERA_SALVAMENTO = 400; // ms sem digitar antes de gravar o rascunho
 
-const formatarHorario = (iso) =>
-  new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 
 /* ---------- Busca de endereço pelo CEP (ViaCEP) ------------------ */
 
@@ -149,7 +148,7 @@ export const iniciarFormularioCadastro = (raiz) => {
     restaurados.forEach((nome) => { visitados.add(nome); verificar(nome); });
     atualizarValorObrigatorio();
 
-    toast(`Recuperamos o preenchimento salvo em ${formatarHorario(rascunho.salvoEm)}. Por segurança, o CPF precisa ser digitado de novo.`, 'info');
+    toast(`Recuperamos o preenchimento salvo em ${formatarDataHora(rascunho.salvoEm)}. Por segurança, o CPF precisa ser digitado de novo.`, 'info');
   };
 
   // Delegação: um listener no formulário atende todos os campos
@@ -250,6 +249,10 @@ export const iniciarFormularioCadastro = (raiz) => {
 
   // Carregamento inicial: restaura o que estava salvo no navegador
   exibirHistorico();
+  // Quando o Day.js termina de carregar, o histórico passa a mostrar "há X minutos"
+  carregarDatas().then((carregou) => {
+    if (carregou && areaHistorico.isConnected) exibirHistorico();
+  });
   recuperarRascunho();
   atualizarBotaoEnviar();
   atualizarContador();

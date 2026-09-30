@@ -8,6 +8,8 @@
       os atributos de acessibilidade (aria-invalid, aria-describedby).
    ================================================================== */
 
+import { calcularIdade } from '../utils/datas.js';
+
 const LETRAS = "A-Za-zÀ-ÖØ-öø-ÿ'";
 
 const REGEX = {
@@ -40,15 +42,6 @@ export const cpfEhValido = (valor) => {
   };
 
   return digito(9) === Number(n[9]) && digito(10) === Number(n[10]);
-};
-
-/** Idade completa em anos a partir de uma data AAAA-MM-DD. */
-export const calcularIdade = (dataIso, hoje = new Date()) => {
-  const [ano, mes, dia] = dataIso.split('-').map(Number);
-  const idade = hoje.getFullYear() - ano;
-  const mesAtual = hoje.getMonth() + 1;
-  const aindaNaoFezAniversario = mesAtual < mes || (mesAtual === mes && hoje.getDate() < dia);
-  return aindaNaoFezAniversario ? idade - 1 : idade;
 };
 
 /** Data limite para ter a idade mínima hoje, no formato do input date. */

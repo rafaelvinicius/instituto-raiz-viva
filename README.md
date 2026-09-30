@@ -40,7 +40,8 @@ instituto-raiz-viva/
     │                       validacao, persistencia-cadastro e formulario-cadastro
     └── utils/
         ├── html.js         escapar() e renderizarLista()
-        └── armazenamento.js  salvar() / ler() / remover() no localStorage
+        ├── armazenamento.js  salvar() / ler() / remover() no localStorage
+        └── datas.js        Integração com a biblioteca Day.js (com alternativa nativa)
 ```
 
 ## Single Page Application (Experiência Prática III)
@@ -361,6 +362,28 @@ O rascunho é apagado no envio e no botão "Limpar formulário", e o histórico 
 o botão "Apagar histórico". Por privacidade, o CPF e o aceite dos termos nunca
 são gravados, e o histórico guarda só o necessário para ser exibido. Os textos
 lidos do armazenamento passam por `escapar()` antes de entrar no HTML.
+
+## Biblioteca externa: Day.js
+
+O [Day.js](https://day.js.org) (versão 1.11.23) cuida das datas:
+
+- **idade exata** a partir da data de nascimento, usada na regra de 18 anos
+  (`dayjs().diff(nascimento, 'year')`);
+- **tempo relativo** no histórico de cadastros, com o plugin `relativeTime` e
+  textos em português ("Enviado há 5 minutos"; a data completa fica no `title`).
+
+Toda a integração fica em `js/utils/datas.js`:
+
+1. a biblioteca e o plugin são importados do CDN jsDelivr como módulos ES
+   (`+esm`), com a versão fixa na URL. Nada é criado em `window`, então não há
+   conflito com outras variáveis;
+2. o carregamento usa `import()` dinâmico, iniciado pelo `app.js` sem esperar o
+   resultado, para não atrasar a primeira renderização;
+3. depois de carregar, `dayjs.extend(relativeTime)` ativa o plugin e
+   `dayjs.locale(...)` define os textos em português;
+4. se o CDN estiver fora do ar ou bloqueado, `carregarDatas()` resolve `false` e
+   as funções usam `Date` e `Intl` nativos. O site continua funcionando, e o
+   histórico mostra a data completa em vez do tempo relativo.
 
 ## Máscaras
 
