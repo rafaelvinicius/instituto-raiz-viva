@@ -14,41 +14,38 @@ As versões entregues ficam marcadas com as tags `ep1` e `ep2`.
 
 ```
 instituto-raiz-viva/
-├── index.html              Casca da SPA: cabeçalho, <main> e rodapé preenchidos por JavaScript
-├── projetos.html           Redireciona o endereço antigo para index.html#/projetos
-├── cadastro.html           Redireciona o endereço antigo para index.html#/cadastro
-├── componentes.html        Guia de componentes de feedback (etiquetas, alertas, toast, modal)
+├── index.html              Só redireciona para html/ (o GitHub Pages exige um index na raiz)
 ├── README.md
-└── assets/
-    ├── css/
-    │   └── style.css       Folha de estilo única, com o design system no :root
-    ├── js/
-    │   ├── app.js          Ponto de entrada: monta o layout e inicia o roteador
-    │   ├── roteador.js     Navegação por hash (#/rota/ancora)
-    │   ├── rotas.js        Tabela endereço → página
-    │   ├── guia.js         Entrada do componentes.html (reaproveita cabeçalho e rodapé)
-    │   ├── views/          Uma página por arquivo: inicio, projetos, cadastro, nao-encontrada
-    │   ├── componentes/    Templates reutilizáveis: cabecalho, rodape, figura, cartao,
-    │   │                   cartao-projeto, lista-definicoes, lista-valores, chamada-apoio
-    │   ├── dados/          Conteúdo estruturado: projetos, instituto, navegacao, estados
-    │   ├── interacoes/     Comportamentos: menu, feedback (toast/modal), formulario-cadastro
-    │   └── utils/
-    │       └── html.js     escapar() e renderizarLista()
-    └── img/
-        ├── favicon.ico                   Ícone do navegador, 32x32
-        ├── logo-raiz-viva.png            Logotipo, 112x112 (exibido em 56x56)
-        ├── mutirao-plantio.webp / .jpg   Página inicial
-        ├── projeto-rua-arborizada.webp / .jpg
-        ├── projeto-viveiro.webp / .jpg
-        ├── projeto-calcada-fresca.webp / .jpg
-        └── projeto-cuidadores.webp / .jpg
+├── html/                   Páginas HTML
+│   ├── index.html          Casca da SPA: cabeçalho, <main> e rodapé preenchidos por JavaScript
+│   └── componentes.html    Guia de componentes de feedback (etiquetas, alertas, toast, modal)
+├── css/
+│   └── style.css           Folha de estilo única, com o design system no :root
+├── imagens/
+│   ├── favicon.ico                   Ícone do navegador, 32x32
+│   ├── logo-raiz-viva.png            Logotipo, 112x112 (exibido em 56x56)
+│   ├── mutirao-plantio.webp / .jpg   Página inicial
+│   └── projeto-*.webp / .jpg         Uma foto por projeto
+└── js/
+    ├── app.js              Ponto de entrada: monta o layout e inicia o roteador
+    ├── roteador.js         Navegação por hash (#/rota/ancora)
+    ├── rotas.js            Tabela endereço → página
+    ├── config.js           Caminhos compartilhados (pasta de imagens)
+    ├── guia.js             Entrada do componentes.html (reaproveita cabeçalho e rodapé)
+    ├── views/              Uma página por arquivo: inicio, projetos, cadastro, nao-encontrada
+    ├── componentes/        Templates reutilizáveis: cabecalho, rodape, figura, cartao,
+    │                       cartao-projeto, lista-definicoes, lista-valores, chamada-apoio
+    ├── dados/              Conteúdo estruturado: projetos, instituto, navegacao, estados
+    ├── interacoes/         Comportamentos: menu, feedback (toast/modal), formulario-cadastro
+    └── utils/
+        └── html.js         escapar() e renderizarLista()
 ```
 
 ## Single Page Application (Experiência Prática III)
 
 ### Navegação
 
-O site passou a ter um único HTML (`index.html`). O JavaScript lê o endereço e
+O site passou a ter um único HTML (`html/index.html`). O JavaScript lê o endereço e
 troca apenas o conteúdo do `<main>` e o título do cabeçalho, sem recarregar a página.
 
 | Endereço | Página |
@@ -72,9 +69,11 @@ A cada troca de página o roteador:
 3. rola para o topo e leva o foco ao `h1`, para que leitores de tela percebam a
    mudança. Com âncora, rola e leva o foco até a seção indicada.
 
-Os endereços antigos (`projetos.html`, `cadastro.html`) continuam funcionando:
-redirecionam para a rota equivalente, inclusive com âncora
-(`projetos.html#como-doar` → `index.html#/projetos/como-doar`).
+Na Experiência Prática III, os arquivos foram separados em pastas por
+responsabilidade: `html/`, `css/`, `imagens/` e `js/`. O `index.html` da raiz só
+redireciona para `html/`, preservando a rota (`/#/projetos` → `/html/#/projetos`).
+As páginas `projetos.html` e `cadastro.html` deixaram de existir; as versões
+anteriores continuam disponíveis pelas tags `ep1` e `ep2`.
 
 ### Templates dinâmicos
 
@@ -121,7 +120,7 @@ Nenhum nível é pulado. A escolha é semântica; o tamanho da fonte fica no CSS
 ## Design system
 
 Todas as decisões visuais ficam em variáveis CSS no `:root` de
-`assets/css/style.css`. Fora delas, as regras não usam cor, tamanho de fonte ou
+`css/style.css`. Fora delas, as regras não usam cor, tamanho de fonte ou
 espaçamento com valor fixo; os únicos valores soltos são larguras de layout
 (`max-width`, `minmax`).
 
@@ -282,7 +281,7 @@ O `disabled` é aplicado pelo JavaScript; sem ele, o botão fica ativo.
 
 ## Componentes de feedback
 
-Documentados com exemplos e HTML em `componentes.html`. Todos compartilham três
+Documentados com exemplos e HTML em `html/componentes.html`. Todos compartilham três
 variáveis locais, `--feedback-cor`, `--feedback-fundo` e `--feedback-icone`, e
 cada variante (`--sucesso`, `--aviso`, `--erro`; sem modificador = informação)
 só troca esses valores.
@@ -304,7 +303,7 @@ Novas cores: `--sinal-escuro` (#8a5a00, 5,3:1 sobre `--sinal-claro`) e
 Para um desenvolvedor back-end, basta gerar o HTML da tabela acima ou chamar:
 
 ```js
-import { toast, abrirModal } from './assets/js/interacoes/feedback.js';
+import { toast, abrirModal } from '../js/interacoes/feedback.js';
 
 toast('Cadastro enviado com sucesso.', 'sucesso');
 abrirModal('modal-sucesso');
@@ -330,7 +329,7 @@ abrirModal('modal-sucesso');
 
 ## Máscaras
 
-Implementadas em `assets/js/interacoes/formulario-cadastro.js`, sem bibliotecas externas, aplicadas
+Implementadas em `js/interacoes/formulario-cadastro.js`, sem bibliotecas externas, aplicadas
 pelo atributo `data-mascara` no HTML:
 
 - **CPF** — `000.000.000-00`, com validação dos dois dígitos verificadores.
@@ -373,7 +372,7 @@ servido em 112x112 para telas de alta densidade, embora exibido em 56x56.
 
 ## Como executar
 
-Versão publicada: https://rafaelvinicius.github.io/instituto-raiz-viva/
+Versão publicada: https://rafaelvinicius.github.io/instituto-raiz-viva/ (abre em `/html/`)
 
 Localmente, é preciso um servidor HTTP, porque os navegadores bloqueiam módulos ES
 abertos direto do disco (`file://`). Qualquer uma destas opções funciona, na pasta

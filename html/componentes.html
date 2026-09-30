@@ -7,19 +7,19 @@
   <meta name="robots" content="noindex">
   <meta name="author" content="Instituto Raiz Viva">
   <title>Guia de componentes — Instituto Raiz Viva</title>
-  <link rel="icon" href="assets/img/favicon.ico">
+  <link rel="icon" href="../imagens/favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&amp;family=Public+Sans:wght@400;500;700&amp;display=swap">
-  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="../css/style.css">
   <!-- Cabeçalho e rodapé vêm dos mesmos componentes da SPA -->
-  <script type="module" src="assets/js/guia.js"></script>
+  <script type="module" src="../js/guia.js"></script>
 </head>
 <body>
 
   <header class="cabecalho" id="cabecalho">
     <div class="cabecalho__marca">
-      <img src="assets/img/logo-raiz-viva.png" alt="Instituto Raiz Viva" width="56" height="56">
+      <img src="../imagens/logo-raiz-viva.png" alt="Instituto Raiz Viva" width="56" height="56">
       <div>
         <h1>Guia de componentes</h1>
         <p class="cabecalho__lema">Etiquetas, alertas, toasts e modal usados na plataforma</p>
@@ -104,7 +104,7 @@
         <button type="button" class="botao botao--secundario" data-toast="Não foi possível consultar o CEP." data-toast-tipo="aviso">Toast de aviso</button>
         <button type="button" class="botao botao--secundario" data-toast="Alguns campos precisam de correção." data-toast-tipo="erro">Toast de erro</button>
       </div>
-      <pre class="codigo"><code>import { toast } from './assets/js/interacoes/feedback.js';
+      <pre class="codigo"><code>import { toast } from '../js/interacoes/feedback.js';
 toast('Cadastro enviado com sucesso.', 'sucesso');
 
 &lt;button data-toast="Mensagem" data-toast-tipo="aviso"&gt;...&lt;/button&gt;</code></pre>

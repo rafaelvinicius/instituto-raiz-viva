@@ -3,9 +3,10 @@
    ================================================================== */
 
 import { escapar } from '../utils/html.js';
+import { PASTA_IMAGENS } from '../config.js';
 
 /**
- * @param {string}  nome     Nome do arquivo em assets/img, sem extensão
+ * @param {string}  nome     Nome do arquivo na pasta imagens/, sem extensão
  * @param {string}  alt      Texto alternativo
  * @param {string}  legenda  Conteúdo do figcaption
  * @param {number}  largura  Largura intrínseca (evita salto de layout)
@@ -16,8 +17,8 @@ import { escapar } from '../utils/html.js';
 export const figura = ({ nome, alt, legenda, largura, altura, adiada = false, classe = '' }) => `
   <figure${classe ? ` class="${classe}"` : ''}>
     <picture>
-      <source srcset="assets/img/${nome}.webp" type="image/webp">
-      <img src="assets/img/${nome}.jpg"
+      <source srcset="${PASTA_IMAGENS}/${nome}.webp" type="image/webp">
+      <img src="${PASTA_IMAGENS}/${nome}.jpg"
            alt="${escapar(alt)}"
            width="${largura}" height="${altura}"${adiada ? ' loading="lazy"' : ''}>
     </picture>
