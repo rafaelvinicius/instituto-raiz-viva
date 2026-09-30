@@ -36,7 +36,8 @@ instituto-raiz-viva/
     ├── componentes/        Templates reutilizáveis: cabecalho, rodape, figura, cartao,
     │                       cartao-projeto, lista-definicoes, lista-valores, chamada-apoio
     ├── dados/              Conteúdo estruturado: projetos, instituto, navegacao, estados
-    ├── interacoes/         Comportamentos: menu, feedback (toast/modal), formulario-cadastro
+    ├── interacoes/         Comportamentos: menu, feedback (toast/modal), mascaras,
+    │                       validacao e formulario-cadastro (liga os eventos do formulário)
     └── utils/
         └── html.js         escapar() e renderizarLista()
 ```
@@ -309,27 +310,42 @@ toast('Cadastro enviado com sucesso.', 'sucesso');
 abrirModal('modal-sucesso');
 ```
 
-## Validações nativas do formulário
+## Validação do formulário
 
-| Campo | Validação |
-|---|---|
-| Nome completo | `required`, `minlength`, `maxlength`, `pattern` (nome e sobrenome) |
-| CPF | `required`, `pattern` `\d{3}\.\d{3}\.\d{3}-\d{2}`, dígitos verificadores em JS |
-| Data de nascimento | `type="date"`, `min`, `max` (maior de 18 anos) |
-| E-mail | `type="email"`, `required`, `maxlength` |
-| Telefone | `type="tel"`, `pattern` `\(\d{2}\)\s\d{4,5}-\d{4}` |
-| CEP | `required`, `pattern` `\d{5}-\d{3}`, busca de endereço, cidade e estado via ViaCEP |
-| Endereço | `type="text"`, `required`, `maxlength`, `autocomplete="address-line1"` |
-| Cidade | `type="text"`, `required`, `maxlength` |
-| Estado | `select` com `required` |
-| Tipo de participação | grupo de `radio` com `required` |
-| Doação mensal | `type="number"`, `min="10"`, `max="10000"`, `step="5"` |
-| Mensagem | `textarea` com `maxlength="500"` |
-| Aceite dos termos | `checkbox` com `required` |
+Os atributos HTML da EP1 (`required`, `pattern`, `min`, `max`...) continuam no
+formulário. Na EP3, a verificação passou a ser feita por JavaScript, em
+`js/interacoes/validacao.js`, com uma regra por campo:
+
+| Campo | Critério | Mensagem quando falha |
+|---|---|---|
+| Nome completo | Nome e sobrenome, só letras (RegEx), mínimo de 6 caracteres | "Informe nome e sobrenome, usando apenas letras." |
+| CPF | Formato `000.000.000-00` (RegEx) e dígitos verificadores | "Este CPF não existe. Confira os números digitados." |
+| Data de nascimento | 18 anos completos, calculados a partir da data de hoje | "É preciso ter 18 anos ou mais para participar." |
+| E-mail | `algo@dominio.ext` (RegEx) | "Digite um e-mail válido, como maria@exemplo.com.br." |
+| Telefone | `(00) 0000-0000` ou `(00) 00000-0000` (RegEx) | "Informe o DDD e o número, com 10 ou 11 dígitos." |
+| CEP | `00000-000` (RegEx) | "Digite os 8 números do CEP." |
+| Endereço | Obrigatório e com número do imóvel | "Inclua o número do imóvel." |
+| Cidade | Só letras (RegEx) | "Use apenas letras no nome da cidade." |
+| Estado / Tipo de participação | Uma opção escolhida | "Selecione o estado." / "Escolha como você quer contribuir." |
+| Doação mensal | Obrigatória para doador ou "das duas formas"; de R$ 10 a R$ 10.000, múltiplo de 5 | "Informe o valor da doação mensal." |
+| Mensagem | Até 500 caracteres, com contador | "Use no máximo 500 caracteres." |
+| Aceite dos termos | Marcado | "É preciso aceitar a política de privacidade." |
+
+**Quando verifica:** ao sair do campo; enquanto a pessoa digita, só nos campos
+já visitados (o erro some assim que o valor é corrigido); e em todos os campos
+ao enviar. Os eventos usam delegação no próprio `<form>`.
+
+**Como avisa:** o contêiner do campo recebe `.campo--erro` (borda vermelha,
+fundo rosado e ícone) ou `.campo--valido` (borda verde e ícone de confirmação),
+e uma mensagem `.campo__erro` é inserida logo abaixo. O campo recebe
+`aria-invalid="true"` e `aria-describedby` apontando para a mensagem, para que
+o leitor de tela a anuncie. No envio com erro, um alerta resume quantos campos
+precisam de correção e o foco vai para o primeiro deles. A regra também chama
+`setCustomValidity()`, mantendo a validação nativa coerente com o JavaScript.
 
 ## Máscaras
 
-Implementadas em `js/interacoes/formulario-cadastro.js`, sem bibliotecas externas, aplicadas
+Implementadas em `js/interacoes/mascaras.js`, sem bibliotecas externas, aplicadas
 pelo atributo `data-mascara` no HTML:
 
 - **CPF** — `000.000.000-00`, com validação dos dois dígitos verificadores.

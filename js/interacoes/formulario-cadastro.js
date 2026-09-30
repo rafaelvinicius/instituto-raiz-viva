@@ -1,253 +1,180 @@
-/*
- * Instituto Raiz Viva — máscaras de entrada e validações do formulário de cadastro.
- * Sem dependências externas.
- *
- * Na SPA o formulário só existe depois que a página de cadastro é
- * renderizada. Por isso, todo o código fica dentro de
- * iniciarFormularioCadastro(), chamada pela view em aoMontar().
- */
+/* ==================================================================
+   Formulário de cadastro: liga os eventos do formulário
+   ------------------------------------------------------------------
+   Chamado pela página de cadastro em aoMontar(), porque o formulário
+   só existe no DOM depois que a página é renderizada.
+
+   Quando cada campo é verificado:
+   - ao sair do campo (focusout): primeira verificação;
+   - ao digitar (input): em tempo real, mas só nos campos que a pessoa
+     já visitou. Assim o erro não aparece antes de ela terminar de
+     digitar, e some assim que o valor é corrigido;
+   - ao enviar (submit): todos os campos de uma vez.
+   ================================================================== */
+
 import { toast, abrirModal } from './feedback.js';
+import { aplicarMascaras, somenteNumeros } from './mascaras.js';
+import {
+  validarCampo,
+  validarFormulario,
+  limparEstados,
+  dataMaximaNascimento,
+  campoExigeValor,
+  LIMITE_MENSAGEM,
+  regras
+} from './validacao.js';
 
-export const iniciarFormularioCadastro = function (raiz) {
+const AJUDA_CEP = 'Endereço, cidade e estado são preenchidos automaticamente.';
 
-  /* ------------------------------------------------------------------ *
-   * 1. Máscaras de entrada
-   * ------------------------------------------------------------------ */
+/* ---------- Busca de endereço pelo CEP (ViaCEP) ------------------ */
 
-  var somenteNumeros = function (valor) {
-    return valor.replace(/\D/g, '');
-  };
+const buscarEndereco = async (formulario, statusCep, aoPreencher) => {
+  const cep = somenteNumeros(formulario.cep.value);
+  if (cep.length !== 8) return;
 
-  var formatadores = {
-    cpf: function (valor) {
-      var n = somenteNumeros(valor).slice(0, 11);
-      if (n.length > 9) {
-        return n.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, '$1.$2.$3-$4');
-      }
-      if (n.length > 6) {
-        return n.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
-      }
-      if (n.length > 3) {
-        return n.replace(/(\d{3})(\d{1,3})/, '$1.$2');
-      }
-      return n;
-    },
+  statusCep.textContent = 'Buscando endereço...';
 
-    telefone: function (valor) {
-      var n = somenteNumeros(valor).slice(0, 11);
-      if (n.length > 10) {
-        return n.replace(/(\d{2})(\d{5})(\d{1,4})/, '($1) $2-$3');
-      }
-      if (n.length > 6) {
-        return n.replace(/(\d{2})(\d{4})(\d{1,4})/, '($1) $2-$3');
-      }
-      if (n.length > 2) {
-        return n.replace(/(\d{2})(\d{1,5})/, '($1) $2');
-      }
-      if (n.length > 0) {
-        return '(' + n;
-      }
-      return n;
-    },
+  try {
+    const resposta = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+    const dados = await resposta.json();
 
-    cep: function (valor) {
-      var n = somenteNumeros(valor).slice(0, 8);
-      if (n.length > 5) {
-        return n.replace(/(\d{5})(\d{1,3})/, '$1-$2');
-      }
-      return n;
+    if (dados.erro) {
+      statusCep.textContent = 'CEP não encontrado. Preencha o endereço manualmente.';
+      return;
     }
+
+    if (dados.logradouro) formulario.endereco.value = `${dados.logradouro}, `;
+    if (dados.localidade) formulario.cidade.value = dados.localidade;
+    if (dados.uf) formulario.uf.value = dados.uf;
+
+    statusCep.textContent = 'Endereço preenchido. Informe o número.';
+    aoPreencher();
+
+    const { endereco } = formulario;
+    endereco.focus();
+    endereco.setSelectionRange(endereco.value.length, endereco.value.length);
+  } catch {
+    statusCep.textContent = 'Não foi possível consultar o CEP. Preencha o endereço manualmente.';
+  }
+};
+
+/* ---------- Eventos ---------------------------------------------- */
+
+export const iniciarFormularioCadastro = (raiz) => {
+  const formulario = raiz.querySelector('#form-cadastro');
+  if (!formulario) return;
+
+  const retorno = raiz.querySelector('#retorno');
+  const statusCep = raiz.querySelector('#cep-status');
+  const botaoEnviar = formulario.querySelector('button[type="submit"]');
+  const ajudaMensagem = formulario.mensagem.closest('.campo').querySelector('.ajuda');
+
+  // Campos que a pessoa já visitou: só eles são verificados enquanto ela digita
+  const visitados = new Set();
+  let limpezaAutomatica = false;
+
+  // A idade mínima é calculada a partir da data de hoje
+  formulario.nascimento.max = dataMaximaNascimento();
+
+  aplicarMascaras(formulario);
+
+  const verificar = (nome) => {
+    if (regras[nome]) validarCampo(formulario, nome);
   };
 
-  var camposComMascara = raiz.querySelectorAll('[data-mascara]');
+  const atualizarBotaoEnviar = () => {
+    botaoEnviar.disabled = !formulario.termos.checked;
+  };
 
-  Array.prototype.forEach.call(camposComMascara, function (campo) {
-    var tipo = campo.getAttribute('data-mascara');
-    var formatar = formatadores[tipo];
-    if (!formatar) { return; }
+  const atualizarContador = () => {
+    const restantes = LIMITE_MENSAGEM - formulario.mensagem.value.length;
+    ajudaMensagem.textContent = `Restam ${restantes} de ${LIMITE_MENSAGEM} caracteres.`;
+  };
 
-    campo.addEventListener('input', function () {
-      var posicao = campo.selectionStart;
-      var tamanhoAnterior = campo.value.length;
+  const mostrarRetorno = (texto, tipo) => {
+    retorno.textContent = texto;
+    retorno.className = tipo ? `retorno alerta alerta--${tipo}` : 'retorno';
+  };
 
-      campo.value = formatar(campo.value);
-      campo.setCustomValidity('');
+  // Delegação: um listener no formulário atende todos os campos
+  formulario.addEventListener('focusout', (evento) => {
+    const { name } = evento.target;
+    if (!name || evento.target.type === 'radio') return;
+    visitados.add(name);
+    verificar(name);
 
-      // Mantém o cursor no lugar quando o usuário edita no meio do texto.
-      if (posicao < tamanhoAnterior) {
-        var diferenca = campo.value.length - tamanhoAnterior;
-        campo.setSelectionRange(posicao + diferenca, posicao + diferenca);
-      }
-    });
-
-    campo.addEventListener('blur', function () {
-      campo.value = formatar(campo.value);
-    });
+    if (name === 'cep') {
+      buscarEndereco(formulario, statusCep, () => {
+        // Campos preenchidos pelo CEP já aparecem verificados
+        ['cidade', 'uf'].forEach((campo) => { visitados.add(campo); verificar(campo); });
+      });
+    }
   });
 
-  /* ------------------------------------------------------------------ *
-   * 2. Validação dos dígitos verificadores do CPF
-   * ------------------------------------------------------------------ */
+  formulario.addEventListener('input', (evento) => {
+    const { name } = evento.target;
+    if (name === 'mensagem') atualizarContador();
+    if (visitados.has(name)) verificar(name);
+  });
 
-  var cpfEhValido = function (valor) {
-    var n = somenteNumeros(valor);
-    if (n.length !== 11) { return false; }
-    if (/^(\d)\1{10}$/.test(n)) { return false; }
+  formulario.addEventListener('change', (evento) => {
+    const { name, type } = evento.target;
 
-    var calcularDigito = function (quantidade) {
-      var soma = 0;
-      var peso = quantidade + 1;
-      for (var i = 0; i < quantidade; i += 1) {
-        soma += parseInt(n.charAt(i), 10) * (peso - i);
-      }
-      var resto = (soma * 10) % 11;
-      return resto === 10 ? 0 : resto;
-    };
-
-    return calcularDigito(9) === parseInt(n.charAt(9), 10) &&
-           calcularDigito(10) === parseInt(n.charAt(10), 10);
-  };
-
-  var campoCpf = document.getElementById('cpf');
-
-  if (campoCpf) {
-    campoCpf.addEventListener('blur', function () {
-      if (campoCpf.value === '') {
-        campoCpf.setCustomValidity('');
-        return;
-      }
-      if (!cpfEhValido(campoCpf.value)) {
-        campoCpf.setCustomValidity('Este CPF não existe. Confira os números digitados.');
-      } else {
-        campoCpf.setCustomValidity('');
-      }
-      campoCpf.reportValidity();
-    });
-  }
-
-  /* ------------------------------------------------------------------ *
-   * 3. Busca de endereço pelo CEP (ViaCEP)
-   * ------------------------------------------------------------------ */
-
-  var campoCep = document.getElementById('cep');
-  var statusCep = document.getElementById('cep-status');
-
-  var preencherEndereco = function (dados) {
-    var mapa = {
-      endereco: dados.logradouro,
-      cidade: dados.localidade,
-      uf: dados.uf
-    };
-
-    Object.keys(mapa).forEach(function (id) {
-      var campo = document.getElementById(id);
-      if (campo && mapa[id]) {
-        campo.value = mapa[id];
-      }
-    });
-  };
-
-  if (campoCep) {
-    campoCep.addEventListener('blur', function () {
-      var cep = somenteNumeros(campoCep.value);
-
-      if (cep.length !== 8) { return; }
-      if (!window.fetch) { return; }
-
-      if (statusCep) { statusCep.textContent = 'Buscando endereço...'; }
-
-      window.fetch('https://viacep.com.br/ws/' + cep + '/json/')
-        .then(function (resposta) { return resposta.json(); })
-        .then(function (dados) {
-          if (dados.erro) {
-            if (statusCep) { statusCep.textContent = 'CEP não encontrado. Preencha o endereço manualmente.'; }
-            return;
-          }
-          preencherEndereco(dados);
-          if (statusCep) { statusCep.textContent = 'Endereço preenchido. Informe o número.'; }
-          var endereco = document.getElementById('endereco');
-          if (endereco && endereco.value) {
-            endereco.value = endereco.value + ', ';
-            endereco.focus();
-            endereco.setSelectionRange(endereco.value.length, endereco.value.length);
-          }
-        })
-        .catch(function () {
-          if (statusCep) { statusCep.textContent = 'Não foi possível consultar o CEP. Preencha o endereço manualmente.'; }
-        });
-    });
-  }
-
-  /* ------------------------------------------------------------------ *
-   * 4. Envio: validação nativa + mensagem de retorno
-   * ------------------------------------------------------------------ */
-
-  var formulario = document.getElementById('form-cadastro');
-  var retorno = document.getElementById('retorno');
-
-  if (formulario) {
-    var botaoEnviar = formulario.querySelector('button[type="submit"]');
-    var limpezaAutomatica = false;
-    var campoTermos = document.getElementById('termos');
-
-    // O envio só é liberado depois do aceite da política de privacidade.
-    // O atributo disabled é aplicado pelo JavaScript: sem ele, o botão
-    // continua ativo e a validação nativa (required) segue valendo.
-    var atualizarBotaoEnviar = function () {
-      if (botaoEnviar && campoTermos) {
-        botaoEnviar.disabled = !campoTermos.checked;
-      }
-    };
-
-    if (campoTermos) {
-      campoTermos.addEventListener('change', atualizarBotaoEnviar);
-      atualizarBotaoEnviar();
+    // Rádio, caixa de seleção e select são verificados assim que mudam
+    if (type === 'radio' || type === 'checkbox' || evento.target.tagName === 'SELECT') {
+      visitados.add(name);
+      verificar(name);
     }
 
-    formulario.addEventListener('submit', function (evento) {
-      evento.preventDefault();
+    if (name === 'termos') atualizarBotaoEnviar();
 
-      if (campoCpf && campoCpf.value !== '' && !cpfEhValido(campoCpf.value)) {
-        campoCpf.setCustomValidity('Este CPF não existe. Confira os números digitados.');
-      }
+    // Regra entre campos: o perfil define se o valor da doação é obrigatório
+    if (name === 'perfil') {
+      formulario.valor.required = campoExigeValor(formulario.perfil.value);
+      if (visitados.has('valor')) verificar('valor');
+    }
+  });
 
-      if (!formulario.checkValidity()) {
-        formulario.classList.add('formulario--verificado');
-        formulario.reportValidity();
-        if (retorno) {
-          retorno.textContent = 'Alguns campos precisam de correção antes do envio.';
-          retorno.className = 'retorno alerta alerta--erro';
-        }
-        return;
-      }
+  formulario.addEventListener('submit', (evento) => {
+    // Impede o envio padrão, que recarregaria a página e sairia da SPA
+    evento.preventDefault();
 
-      // O reset feito pelo próprio envio não deve gerar o toast de "limpo"
-      limpezaAutomatica = true;
-      formulario.reset();
-      limpezaAutomatica = false;
+    const erros = validarFormulario(formulario);
+    Object.keys(regras).forEach((nome) => visitados.add(nome));
 
-      // Sucesso: modal de confirmação com os próximos passos
-      abrirModal('modal-sucesso');
-    });
+    if (erros.length) {
+      const total = erros.length === 1 ? '1 campo precisa' : `${erros.length} campos precisam`;
+      mostrarRetorno(`${total} de correção. Os problemas estão destacados em vermelho.`, 'erro');
+      formulario.querySelector('[aria-invalid="true"]')?.focus();
+      return;
+    }
 
-    formulario.addEventListener('reset', function () {
-      formulario.classList.remove('formulario--verificado');
-      // Limpeza pedida pela pessoa: aviso discreto em toast
-      if (!limpezaAutomatica) {
-        toast('Formulário limpo. Você pode começar de novo.', 'info');
-      }
-      // O evento acontece antes de os campos serem limpos
-      setTimeout(atualizarBotaoEnviar, 0);
-      if (retorno) {
-        retorno.textContent = '';
-        retorno.className = 'retorno';
-      }
-      if (statusCep) {
-        statusCep.textContent = 'Endereço, cidade e estado são preenchidos automaticamente.';
-      }
-      if (campoCpf) {
-        campoCpf.setCustomValidity('');
-      }
-    });
-  }
+    // O reset feito pelo próprio envio não deve gerar o toast de "limpo"
+    limpezaAutomatica = true;
+    formulario.reset();
+    limpezaAutomatica = false;
+
+    abrirModal('modal-sucesso');
+  });
+
+  formulario.addEventListener('reset', () => {
+    if (!limpezaAutomatica) {
+      toast('Formulário limpo. Você pode começar de novo.', 'info');
+    }
+
+    visitados.clear();
+    mostrarRetorno('', null);
+    statusCep.textContent = AJUDA_CEP;
+    formulario.valor.required = false;
+
+    // O evento reset acontece antes de os campos serem esvaziados
+    setTimeout(() => {
+      limparEstados(formulario);
+      atualizarBotaoEnviar();
+      atualizarContador();
+    }, 0);
+  });
+
+  atualizarBotaoEnviar();
+  atualizarContador();
 };
