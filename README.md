@@ -396,6 +396,7 @@ precisam de correção e o foco vai para o primeiro deles. A regra também chama
 |---|---|---|---|
 | `raizviva:rascunho-cadastro` | objeto `{ salvoEm, campos }` | 400 ms depois de cada alteração no formulário | Ao abrir a página de cadastro: devolve os valores aos campos |
 | `raizviva:cadastros` | array de `{ nome, email, perfil, valor, enviadoEm }` | No envio válido (um novo envio com o mesmo e-mail substitui o anterior) | Ao abrir a página de cadastro: lista os cadastros ao lado do formulário |
+| `raizviva:tema` | texto `"claro"` ou `"escuro"` | Ao clicar no botão "Modo escuro" | No `<head>`, antes da primeira pintura; sem valor, vale a preferência do sistema |
 
 `js/servicos/armazenamento.js` concentra o acesso: `salvar()` converte com
 `JSON.stringify` e chama `setItem`; `ler()` chama `getItem`, converte com
@@ -503,6 +504,41 @@ AA, sem nenhuma violação. No formulário com erros, o axe não conseguiu calcu
 contraste de 7 campos de texto por causa do ícone de alerta no fundo. Pela fórmula de
 luminância, o texto (`--tinta`) sobre o fundo de erro (`--erro-claro`) tem 13,8:1, e
 a mensagem de erro (`--erro` sobre `--erro-claro`), 6,1:1.
+
+### Temas: claro, escuro e alto contraste
+
+As cores dos componentes da página vêm de **papéis** (`--fundo`, `--superficie`,
+`--texto`, `--texto-fraco`, `--link`, `--destaque`...), definidos no `:root` a partir
+da paleta. Os temas só redefinem esses papéis, sem repetir regras de componentes.
+Cabeçalho, bloco de apoio, rodapé e botão principal já são escuros ou de cor forte e
+ficam iguais em todos os temas.
+
+| Modo | Como é ativado | O que muda |
+|---|---|---|
+| Escuro automático | `@media (prefers-color-scheme: dark)`, quando não há escolha salva | Papéis com fundo escuro e texto claro, `color-scheme: dark` para campos nativos e fotos com brilho de 90% |
+| Escuro / claro manual | Botão "Modo escuro" no cabeçalho (`aria-pressed`), salvo em `raizviva:tema` | `data-tema="escuro"` ou `"claro"` no `<html>`, que vence a preferência do sistema |
+| Alto contraste | `@media (prefers-contrast: more)` | Texto secundário igual ao principal, bordas decorativas iguais às dos campos e sublinhado de link mais grosso |
+| Cores forçadas | `@media (forced-colors: active)` (ex.: Alto Contraste do Windows) | Borda visível em botões, ícones e item ativo do menu mantidos, foco na cor `Highlight` |
+
+Um script curto no `<head>` aplica o tema salvo antes da primeira pintura, para a
+página não piscar no tema errado.
+
+**Contraste medido** (fórmula de luminância relativa da WCAG 2.1):
+
+| Elemento | Tema claro | Tema escuro |
+|---|---|---|
+| Texto principal sobre o fundo | `#16241b` / `#f2f4ef` — 14,6:1 | `#e6ece7` / `#121a15` — 14,8:1 |
+| Texto principal sobre cartões e campos | `#16241b` / `#ffffff` — 16,1:1 | `#e6ece7` / `#1b2620` — 13,0:1 |
+| Texto secundário sobre cartões | `#4b5b50` / `#ffffff` — 7,2:1 | `#a9b8ad` / `#1b2620` — 7,6:1 |
+| Links sobre o fundo | `#1d4733` / `#f2f4ef` — 9,5:1 | `#8fd1a9` / `#121a15` — 10,0:1 |
+| Mensagem de erro sobre o fundo de erro | `#a32c1c` / `#fbeae7` — 6,1:1 | `#ff9e8f` / `#3d1a15` — 7,8:1 |
+| Texto de aviso sobre o fundo de aviso | `#8a5a00` / `#fdf1dc` — 5,3:1 | `#f2b84b` / `#3a2a0c` — 7,7:1 |
+| Contorno dos campos (mínimo 3:1) | `#75827a` / `#ffffff` — 4,0:1 | `#8a9a8f` / `#1b2620` — 5,3:1 |
+| Botão principal (igual nos dois) | `#16241b` / `#d98b0a` — 5,9:1 | `#16241b` / `#d98b0a` — 5,9:1 |
+| Texto do cabeçalho (igual nos dois) | `#f2f4ef` / `#1d4733` — 9,5:1 | `#f2f4ef` / `#1d4733` — 9,5:1 |
+
+O axe-core foi executado nas quatro telas e no formulário com erros nos modos claro,
+escuro, alto contraste claro e alto contraste escuro, sem nenhuma violação.
 
 ## Como executar
 
