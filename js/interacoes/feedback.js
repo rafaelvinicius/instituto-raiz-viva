@@ -53,7 +53,19 @@ export const toast = (mensagem, tipo = 'info') => {
   };
 
   fechar.addEventListener('click', remover);
-  setTimeout(remover, TEMPO_TOAST);
+
+  // O aviso some sozinho, mas o tempo para enquanto o ponteiro ou o
+  // foco do teclado estão sobre ele, para dar tempo de ler (WCAG 2.2.1).
+  let temporizador = setTimeout(remover, TEMPO_TOAST);
+  const pausar = () => clearTimeout(temporizador);
+  const retomar = () => {
+    clearTimeout(temporizador);
+    temporizador = setTimeout(remover, TEMPO_TOAST);
+  };
+  item.addEventListener('mouseenter', pausar);
+  item.addEventListener('mouseleave', retomar);
+  item.addEventListener('focusin', pausar);
+  item.addEventListener('focusout', retomar);
 };
 
 // O <dialog> nativo prende o foco dentro do modal, fecha com Esc e
