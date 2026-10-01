@@ -24,7 +24,10 @@ e o fluxo de trabalho do repositório em [Fluxo de trabalho com GitFlow](#fluxo-
 | [Day.js](https://day.js.org) 1.11.23 (CDN jsDelivr) | Cálculo de idade e tempo relativo |
 | API [ViaCEP](https://viacep.com.br) | Preenchimento automático do endereço pelo CEP |
 | Google Fonts | Fontes Fraunces e Public Sans |
-| Node.js (`node:test`) | Testes automatizados, sem dependências instaladas |
+| Node.js (`node:test`) | Testes automatizados |
+| [Vite](https://vite.dev/) 8 | Servidor de desenvolvimento e build de produção (agrupamento e minificação) |
+| html-minifier-terser | Minificação do HTML no build |
+| GitHub Actions | Testes, build e deploy automáticos a cada push na `main` |
 | Git e GitHub | Versionamento com GitFlow, issues, milestones e pull requests |
 | GitHub Pages | Hospedagem da versão publicada |
 
@@ -33,6 +36,10 @@ e o fluxo de trabalho do repositório em [Fluxo de trabalho com GitFlow](#fluxo-
 ```
 instituto-raiz-viva/
 ├── index.html              Só redireciona para html/ (o GitHub Pages exige um index na raiz)
+├── package.json            Scripts (dev, build, preview, test) e dependências de desenvolvimento
+├── vite.config.js          Configuração do build de produção
+├── .github/workflows/
+│   └── deploy.yml          Testes, build e deploy no GitHub Pages
 ├── README.md
 ├── html/                   Páginas HTML
 │   ├── index.html          Casca da SPA: cabeçalho, <main> e rodapé preenchidos por JavaScript
@@ -548,41 +555,73 @@ Versão publicada: https://rafaelvinicius.github.io/instituto-raiz-viva/ (abre e
 
 - [Git](https://git-scm.com/), para clonar o repositório;
 - um navegador atualizado (Chrome, Firefox, Edge ou Safari);
-- um servidor HTTP local: [Node.js](https://nodejs.org/) 18 ou superior (que também
-  roda os testes) **ou** Python 3;
+- [Node.js](https://nodejs.org/) 20.19 ou 22.12 (ou superior), com o npm, para o servidor
+  de desenvolvimento, o build e os testes;
 - conexão com a internet para as fontes, o Day.js e a consulta de CEP. Sem ela, o
   site funciona com fontes do sistema, datas nativas e endereço digitado à mão.
 
 ### Instalação local
-
-O projeto não tem dependências para instalar (não há `package.json` nem `npm install`).
 
 ```bash
 # 1. clonar o repositório e entrar na pasta
 git clone https://github.com/rafaelvinicius/instituto-raiz-viva.git
 cd instituto-raiz-viva
 
-# 2. subir um servidor HTTP na pasta do projeto (escolha uma opção)
-npx serve .
-# ou
-python3 -m http.server 8000
+# 2. instalar as dependências de desenvolvimento (Vite e html-minifier-terser)
+npm install
 
-# 3. abrir no navegador o endereço exibido no terminal
-#    (com Python: http://localhost:8000)
+# 3. subir o servidor de desenvolvimento e abrir o endereço exibido
+#    (normalmente http://localhost:5173/html/)
+npm run dev
 ```
 
-O servidor é necessário porque os navegadores bloqueiam módulos ES abertos direto do
-disco (`file://`). No VS Code, a extensão Live Server também resolve. Por enquanto não
-há etapa de build: os arquivos são servidos como estão.
+O site precisa de um servidor HTTP porque os navegadores bloqueiam módulos ES abertos
+direto do disco (`file://`).
+
+### Scripts
+
+| Comando | O que faz |
+|---|---|
+| `npm run dev` | Servidor de desenvolvimento do Vite, com recarga automática |
+| `npm run build` | Gera a versão de produção, minificada, na pasta `dist/` |
+| `npm run preview` | Serve a pasta `dist/` localmente, para conferir o build antes do deploy |
+| `npm test` | Roda os testes automatizados |
+
+## Build de produção
+
+O build usa o [Vite](https://vite.dev/) 8, configurado em `vite.config.js`:
+
+- **Três entradas HTML** (`index.html`, `html/index.html` e `html/componentes.html`),
+  mantendo a mesma estrutura de pastas no `dist/`.
+- **JavaScript:** os 35 módulos ES viram 3 arquivos (um por página e um compartilhado),
+  minificados. O Day.js continua vindo do CDN por `import()` dinâmico.
+- **CSS:** minificado em um único arquivo.
+- **HTML:** minificado por um plugin próprio com o
+  [html-minifier-terser](https://github.com/terser/html-minifier-terser), já que o Vite
+  não minifica HTML. Inclui o script do tema no `<head>`.
+- **Nomes com hash** (`app-CHM4UZ3s.js`): o arquivo muda de nome quando o conteúdo
+  muda, o que permite cache longo sem servir versão antiga.
+- **`base: './'`:** caminhos relativos, porque o site fica em `/instituto-raiz-viva/` e
+  não na raiz do domínio.
+- **Imagens:** copiadas para `dist/imagens`, porque o JavaScript monta os caminhos das
+  fotos em tempo de execução.
+
+Resultado medido no build da v2.1.0:
+
+| Tipo | Antes | Depois | Redução | Com gzip |
+|---|---|---|---|---|
+| HTML (3 arquivos) | 10,8 KB | 8,9 KB | 17% | 4,1 → 3,5 KB |
+| CSS (1 arquivo) | 35,3 KB | 22,3 KB | 37% | 8,7 → 5,1 KB |
+| JavaScript (35 → 3 arquivos) | 78,7 KB | 38,1 KB | 52% | 31,6 → 14,5 KB |
+| **Total** | **124,8 KB** | **69,3 KB** | **44%** | 44,4 → 23,1 KB |
 
 ## Testes
 
 As regras, as máscaras e os serviços não dependem do navegador, então têm testes
-automatizados com o test runner nativo do Node (versão 18 ou superior, sem
-instalar nada):
+automatizados com o test runner nativo do Node, sem biblioteca de testes:
 
 ```bash
-node --test testes/modulos.test.mjs
+npm test
 ```
 
 São 15 testes, que cobrem: CPF válido e inválido, formatos de e-mail, telefone e
@@ -677,6 +716,7 @@ entregas da disciplina e apontam para os mesmos commits das versões semânticas
 | `v1.0.0` | `ep1` | Estrutura em HTML5 semântico e formulário de cadastro com validações e máscaras | Primeira versão publicada |
 | `v1.1.0` | `ep2` | Design system em CSS3, layout com Grid e Flexbox, menu responsivo e componentes de feedback | MINOR: acrescenta recursos sem mudar páginas nem endereços |
 | `v2.0.0` | `ep3` | Single Page Application com roteamento por hash, validação em JavaScript, localStorage e módulos | MAJOR: os endereços antigos (`projetos.html`, `cadastro.html`) deixaram de existir |
+| `v2.1.0` | `ep4` | Versionamento com GitFlow, acessibilidade WCAG 2.1 AA (link de pular, modo escuro, alto contraste) e documentação | MINOR: novos recursos sem quebrar endereços |
 
 Para ver o código de uma versão anterior:
 
@@ -687,8 +727,12 @@ git checkout main     # retorna à versão atual
 
 ## Deploy
 
-O site é publicado pelo GitHub Pages a partir da branch `main`, na raiz do
-repositório: https://rafaelvinicius.github.io/instituto-raiz-viva/
+O site é publicado no GitHub Pages: https://rafaelvinicius.github.io/instituto-raiz-viva/
+
+O workflow `.github/workflows/deploy.yml` (GitHub Actions) roda a cada push na `main`:
+instala as dependências (`npm ci`), roda os testes, gera o build e publica **apenas a
+pasta `dist/`**. Se um teste falhar, nada é publicado. Em Settings → Pages, a origem
+("Source") fica como **GitHub Actions**.
 
 Como a `main` só recebe versões de lançamento, o que está no ar corresponde
 sempre à última versão marcada com tag.
