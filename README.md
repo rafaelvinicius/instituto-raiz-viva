@@ -3,13 +3,16 @@
 Plataforma web institucional de uma ONG fictícia de reflorestamento urbano e
 educação ambiental, desenvolvida na disciplina de Desenvolvimento Front-End:
 
-- **Experiência Prática I** — estrutura em HTML5 semântico e formulário com validações.
-- **Experiência Prática II** — estilização com CSS3, a partir de um design system em variáveis CSS.
-- **Experiência Prática III** — interatividade com JavaScript: Single Page Application,
+- **Experiência Prática 1** — estrutura em HTML5 semântico e formulário com validações.
+- **Experiência Prática 2** — estilização com CSS3, a partir de um design system em variáveis CSS.
+- **Experiência Prática 3** — interatividade com JavaScript: Single Page Application,
   templates dinâmicos, eventos, validação, armazenamento local, biblioteca
   externa e código modular.
+- **Experiência Prática 4** — controle de versões com Git e GitHub, organização de commits
+  e branches, acessibilidade e preparação para produção.
 
-As versões entregues ficam marcadas com as tags `ep1` e `ep2`.
+Cada entrega é uma versão marcada com tag. A lista completa está em [Versões](#versões),
+e o fluxo de trabalho do repositório em [Fluxo de trabalho com GitFlow](#fluxo-de-trabalho-com-gitflow).
 
 ## Estrutura de diretórios
 
@@ -85,7 +88,7 @@ Na Experiência Prática III, os arquivos foram separados em pastas por
 responsabilidade: `html/`, `css/`, `imagens/` e `js/`. O `index.html` da raiz só
 redireciona para `html/`, preservando a rota (`/#/projetos` → `/html/#/projetos`).
 As páginas `projetos.html` e `cadastro.html` deixaram de existir; as versões
-anteriores continuam disponíveis pelas tags `ep1` e `ep2`.
+anteriores continuam disponíveis pelas tags `ep1`/`v1.0.0` e `ep2`/`v1.1.0`.
 
 ### Templates dinâmicos
 
@@ -506,3 +509,93 @@ As três páginas foram verificadas em https://validator.w3.org/ e a folha de es
 em https://jigsaw.w3.org/css-validator/, ambas sem erros nem avisos.
 Após a refatoração da Experiência Prática II, a folha de estilo foi verificada
 com o csstree-validator, também sem erros.
+
+## Fluxo de trabalho com GitFlow
+
+A partir da Experiência Prática 4, o repositório segue o modelo GitFlow, mesmo com
+uma pessoa só desenvolvendo:
+
+| Branch | Função | Recebe código de |
+|---|---|---|
+| `main` | Versões de lançamento. É a versão publicada no GitHub Pages | `release/*` e `hotfix/*` |
+| `develop` | Desenvolvimento contínuo, com as funcionalidades já concluídas | `feature/*` (por pull request) |
+| `feature/*` | Uma tarefa por branch, criada a partir da `develop` | — |
+| `release/*` | Preparação de uma versão (revisão final, número de versão) | `develop` |
+| `hotfix/*` | Correção urgente de uma falha em produção, criada a partir da `main` | — |
+
+Nenhum commit é feito diretamente na `main`. O caminho de uma alteração é:
+
+```bash
+# 1. criar a branch da tarefa a partir da develop atualizada
+git checkout develop
+git pull
+git checkout -b feature/nome-da-tarefa
+
+# 2. trabalhar com commits pequenos e semânticos
+git commit -m "feat: descrição curta da mudança"
+
+# 3. enviar e abrir um pull request para a develop no GitHub
+git push -u origin feature/nome-da-tarefa
+```
+
+O pull request descreve o motivo da mudança, o que foi alterado e como revisar, e
+cita a issue relacionada (`Closes #n`), que é fechada no merge. Depois do merge, a
+branch da tarefa é apagada.
+
+Para lançar uma versão, a `develop` estável vira uma `release/*`, que é mesclada
+na `main` e marcada com a tag da versão. Uma `hotfix/*` sai da `main` e, depois de
+corrigida, é mesclada na `main` e na `develop`, para a correção não se perder.
+
+As tarefas de cada entrega são registradas em issues e agrupadas em um milestone
+(por exemplo, "EP4 · v2.1.0").
+
+## Convenção de commits
+
+As mensagens seguem o padrão [Conventional Commits](https://www.conventionalcommits.org/pt-br/v1.0.0/):
+`tipo: descrição no imperativo ou no presente, em minúsculas e sem ponto final`.
+
+| Tipo | Quando usar | Exemplo do projeto |
+|---|---|---|
+| `feat` | Nova funcionalidade | `feat: persiste rascunho e histórico do cadastro no localStorage` |
+| `fix` | Correção de falha | `fix: resposta tardia do CEP após navegação e entrada inválida em campos numéricos e de data` |
+| `refactor` | Mudança de código sem alterar o comportamento | `refactor: separa serviços, regras e interação em módulos e adiciona testes` |
+| `docs` | Somente documentação | `docs: atualiza o README com GitFlow, convenção de commits e versões` |
+| `style` | Formatação, sem mudar a lógica | — |
+| `perf` | Melhoria de desempenho | — |
+| `test` | Criação ou ajuste de testes | — |
+| `chore` | Configuração e manutenção do repositório | — |
+
+O tipo também indica o impacto na versão: `fix` gera uma versão PATCH, `feat` gera
+uma MINOR e uma mudança incompatível gera uma MAJOR.
+
+## Versões
+
+O projeto usa [versionamento semântico](https://semver.org/lang/pt-BR/)
+(`MAJOR.MINOR.PATCH`). As tags `ep1` a `ep3` foram mantidas para identificar as
+entregas da disciplina e apontam para os mesmos commits das versões semânticas.
+
+| Versão | Entrega | Conteúdo | Por que esse número |
+|---|---|---|---|
+| `v1.0.0` | `ep1` | Estrutura em HTML5 semântico e formulário de cadastro com validações e máscaras | Primeira versão publicada |
+| `v1.1.0` | `ep2` | Design system em CSS3, layout com Grid e Flexbox, menu responsivo e componentes de feedback | MINOR: acrescenta recursos sem mudar páginas nem endereços |
+| `v2.0.0` | `ep3` | Single Page Application com roteamento por hash, validação em JavaScript, localStorage e módulos | MAJOR: os endereços antigos (`projetos.html`, `cadastro.html`) deixaram de existir |
+
+Para ver o código de uma versão anterior:
+
+```bash
+git checkout v1.0.0   # volta para a versão da EP1 (modo somente leitura)
+git checkout main     # retorna à versão atual
+```
+
+## Deploy
+
+O site é publicado pelo GitHub Pages a partir da branch `main`, na raiz do
+repositório: https://rafaelvinicius.github.io/instituto-raiz-viva/
+
+Como a `main` só recebe versões de lançamento, o que está no ar corresponde
+sempre à última versão marcada com tag.
+
+## Autoria
+
+Desenvolvido por Rafael Vinicius da Silva para a disciplina de Desenvolvimento
+Front-End do curso de Análise e Desenvolvimento de Sistemas da Cruzeiro do Sul.
