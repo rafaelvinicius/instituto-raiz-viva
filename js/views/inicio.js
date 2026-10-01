@@ -29,6 +29,8 @@ export const inicio = {
         legenda: 'Mutirão de plantio na Avenida Sapopemba, março de 2026.',
         largura: 960,
         altura: 420,
+        // larguras medidas: até 1023px ocupa a tela menos 2rem; acima, até 680px
+        tamanhos: '(min-width: 1024px) 680px, calc(100vw - 2rem)',
         classe: 'destaque__figura'
       })}
       <p class="destaque__texto">
