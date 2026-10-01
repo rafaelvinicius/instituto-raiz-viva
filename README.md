@@ -500,8 +500,9 @@ As cinco telas (início, projetos, cadastro, página não encontrada e guia de
 componentes) e o formulário com erros foram verificados com o
 [axe-core](https://github.com/dequelabs/axe-core) nas regras WCAG 2.0/2.1 níveis A e
 AA, sem nenhuma violação. No formulário com erros, o axe não conseguiu calcular o
-contraste de 7 elementos por causa do fundo com ícone; esses valores foram
-conferidos manualmente (tabela de contraste acima).
+contraste de 7 campos de texto por causa do ícone de alerta no fundo. Pela fórmula de
+luminância, o texto (`--tinta`) sobre o fundo de erro (`--erro-claro`) tem 13,8:1, e
+a mensagem de erro (`--erro` sobre `--erro-claro`), 6,1:1.
 
 ## Como executar
 
