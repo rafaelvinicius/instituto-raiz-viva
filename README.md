@@ -450,19 +450,47 @@ pelo atributo `data-mascara` no HTML:
 
 ## Imagens
 
-Três formatos, cada um onde rende melhor:
+**Formatos.** Cada fotografia existe em três formatos, entregues por `<picture>`. O
+navegador usa o primeiro que suporta:
 
-- **WebP** como formato principal das cinco fotografias, entregue por
-  `<picture>`/`<source type="image/webp">`.
-- **JPEG** como fallback no `<img>`, para navegadores sem suporte a WebP.
-  Fotografia em PNG ficaria cerca de três vezes maior, já que o formato não
-  aplica compressão com perda.
-- **ICO** no favicon e **PNG** no logotipo, por serem gráficos pequenos com
-  áreas chapadas e transparência.
+1. **AVIF** (qualidade 50): o menor arquivo, cerca de 40% menor que o WebP;
+2. **WebP** (qualidade 68): para navegadores sem AVIF;
+3. **JPEG progressivo** (qualidade 78): alternativa final, no `<img>`.
 
-Todas as imagens declaram `width` e `height` no HTML para o navegador reservar o
-espaço antes do carregamento e evitar deslocamento de layout. O logotipo é
-servido em 112x112 para telas de alta densidade, embora exibido em 56x56.
+O logotipo continua em **PNG**, por ter transparência e áreas chapadas, reduzido para 128
+cores (30,5 KB → 7,1 KB). O favicon é **ICO**.
+
+**Resolução.** Cada foto tem três larguras: 480px, 768px e a original (960px ou
+1000px). O `srcset` lista as três, e o `sizes` informa a largura que a imagem ocupa em
+cada faixa de tela, medida no navegador:
+
+| Imagem | `sizes` |
+|---|---|
+| Foto da página inicial | `(min-width: 1024px) 680px, calc(100vw - 2rem)` |
+| Fotos dos projetos | `(min-width: 1024px) 530px, (min-width: 768px) 38vw, calc(100vw - 5rem)` |
+
+Com isso, um celular comum baixa a versão de 480px ou de 768px (telas de alta
+densidade), e só telas grandes chegam à original.
+
+**Carregamento.** Todas as imagens declaram `width` e `height`, para o navegador reservar
+o espaço e evitar deslocamento de layout. A foto principal da página inicial usa
+`fetchpriority="high"`. As fotos dos projetos usam `loading="lazy"` e só são baixadas
+perto de aparecer na tela. Todas têm `decoding="async"`.
+
+**Resultado medido** (Chromium com cache desligado e rede limitada a 1,6 Mbps e 150 ms
+de latência, só os arquivos do site; tempo até as imagens visíveis terminarem de
+carregar, mediana de 3 medições):
+
+| Página e tela | Imagens baixadas | Tempo até as imagens visíveis |
+|---|---|---|
+| Início, celular (390px, 2x) | 164 KB → 48 KB (−71%) | 1,64 s → 1,10 s (−33%) |
+| Início, desktop (1280px) | 164 KB → 48 KB (−71%) | 1,64 s → 1,10 s (−33%) |
+| Projetos, celular (390px, 2x) | 534 KB → 185 KB na página inteira (−65%) | 2,20 s → 1,33 s (−40%) |
+| Projetos, desktop (1280px) | 534 KB → 185 KB (−65%) | 3,44 s → 1,72 s (−50%) |
+
+No build antigo, o logotipo também era baixado duas vezes (um arquivo do HTML e outro
+do JavaScript). Agora o cabeçalho usa o mesmo arquivo, resolvido com
+`new URL('../../imagens/logo-raiz-viva.png', import.meta.url)`.
 
 ## Acessibilidade
 
