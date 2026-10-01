@@ -10,6 +10,7 @@ import { rodape } from './componentes/rodape.js';
 import { iniciarMenu } from './interacoes/menu.js';
 import { iniciarFeedback } from './interacoes/feedback.js';
 import { iniciarAtalhoConteudo } from './interacoes/atalhos.js';
+import { iniciarTema, temaEhEscuro } from './interacoes/tema.js';
 
 const BASE = 'index.html';
 
@@ -18,10 +19,12 @@ document.documentElement.classList.add('js');
 document.getElementById('cabecalho').innerHTML = cabecalho({
   titulo: 'Guia de componentes',
   lema: 'Etiquetas, alertas, toasts e modal usados na plataforma',
-  base: BASE
+  base: BASE,
+  temaEscuro: temaEhEscuro()
 });
 document.getElementById('rodape').innerHTML = rodape({ base: BASE });
 
 iniciarMenu();
 iniciarFeedback();
 iniciarAtalhoConteudo();
+iniciarTema();

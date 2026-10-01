@@ -30,8 +30,15 @@ const itemMenu = (rotaAtual, base) => (item) => {
  * @param {string} lema      Subtítulo abaixo do h1
  * @param {string} rotaAtual Rota ativa, marcada com aria-current no menu
  * @param {string} base      Prefixo dos links ('' dentro da SPA, 'index.html' fora dela)
+ * @param {boolean} temaEscuro Estado inicial do botão "Modo escuro" (aria-pressed)
  */
-export const cabecalho = ({ titulo, lema, rotaAtual = null, base = '' }) => `
+export const cabecalho = ({ titulo, lema, rotaAtual = null, base = '', temaEscuro = false }) => `
+  <div class="cabecalho__ferramentas">
+    <button type="button" class="tema__botao" data-alternar-tema aria-pressed="${temaEscuro}">
+      Modo escuro
+    </button>
+  </div>
+
   <div class="cabecalho__marca">
     <img src="${PASTA_IMAGENS}/logo-raiz-viva.png" alt="Instituto Raiz Viva" width="56" height="56">
     <div>

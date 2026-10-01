@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
   <meta name="description" content="Instituto Raiz Viva: reflorestamento urbano e educação ambiental na zona leste de São Paulo. Conheça os projetos, doe ou seja voluntário.">
   <meta name="author" content="Instituto Raiz Viva">
   <title>Instituto Raiz Viva — reflorestamento urbano em São Paulo</title>
@@ -10,6 +11,16 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&amp;family=Public+Sans:wght@400;500;700&amp;display=swap">
+  <!-- Aplica o tema salvo (claro/escuro) antes da primeira pintura.
+       Fica fora dos módulos porque eles só rodam depois do HTML lido. -->
+  <script>
+    try {
+      var tema = JSON.parse(localStorage.getItem('raizviva:tema'));
+      if (tema === 'claro' || tema === 'escuro') {
+        document.documentElement.dataset.tema = tema;
+      }
+    } catch (erro) {}
+  </script>
   <link rel="stylesheet" href="../css/style.css">
   <!-- Módulos ES são carregados de forma adiada: o script roda depois
        que o HTML abaixo já foi lido. -->
