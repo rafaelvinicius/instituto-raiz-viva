@@ -9,6 +9,7 @@ import { cabecalho } from './componentes/cabecalho.js';
 import { rodape } from './componentes/rodape.js';
 import { iniciarMenu } from './interacoes/menu.js';
 import { iniciarFeedback } from './interacoes/feedback.js';
+import { iniciarAtalhoConteudo } from './interacoes/atalhos.js';
 
 const BASE = 'index.html';
 
@@ -23,3 +24,4 @@ document.getElementById('rodape').innerHTML = rodape({ base: BASE });
 
 iniciarMenu();
 iniciarFeedback();
+iniciarAtalhoConteudo();

@@ -118,6 +118,27 @@ a:hover {
   outline: none;
 }
 
+/* Link "Pular para o conteúdo": fora da tela até receber o foco do
+   teclado. Não usa display: none, que o tiraria da ordem do Tab. */
+.pular-conteudo {
+  position: absolute;
+  top: var(--espaco-2);
+  left: var(--espaco-2);
+  z-index: 100;
+  padding: var(--espaco-2) var(--espaco-4);
+  background-color: var(--folha-forte);
+  color: var(--papel-alto);
+  font-weight: var(--peso-forte);
+  border-radius: var(--raio);
+  transform: translateY(-200%);
+}
+
+.pular-conteudo:focus {
+  transform: none;
+  outline: 3px solid var(--sinal);
+  outline-offset: 2px;
+}
+
 abbr[title] {
   color: var(--erro);
   text-decoration: none;

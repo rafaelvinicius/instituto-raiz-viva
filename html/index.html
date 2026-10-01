@@ -17,6 +17,10 @@
 </head>
 <body>
 
+  <!-- Primeiro item da ordem do Tab: permite pular o cabeçalho e o menu
+       e ir direto ao conteúdo (WCAG 2.4.1 — Ignorar blocos). -->
+  <a class="pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
+
   <!-- Casca da SPA: cabeçalho, conteúdo e rodapé são preenchidos pelo
        JavaScript (js/app.js) conforme a rota do endereço. -->
 
@@ -30,7 +34,7 @@
     </div>
   </header>
 
-  <main id="conteudo">
+  <main id="conteudo" tabindex="-1">
     <noscript>
       <section class="intro">
         <h2>Ative o JavaScript para navegar</h2>

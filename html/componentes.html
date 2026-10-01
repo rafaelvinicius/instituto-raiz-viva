@@ -17,6 +17,10 @@
 </head>
 <body>
 
+  <!-- Primeiro item da ordem do Tab: permite pular o cabeçalho e o menu
+       e ir direto ao conteúdo (WCAG 2.4.1 — Ignorar blocos). -->
+  <a class="pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
+
   <header class="cabecalho" id="cabecalho">
     <div class="cabecalho__marca">
       <img src="../imagens/logo-raiz-viva.png" alt="Instituto Raiz Viva" width="56" height="56">
@@ -27,7 +31,7 @@
     </div>
   </header>
 
-  <main id="conteudo">
+  <main id="conteudo" tabindex="-1">
 
     <section class="intro">
       <h2>Como usar</h2>
