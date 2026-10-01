@@ -472,6 +472,36 @@ servido em 112x112 para telas de alta densidade, embora exibido em 56x56.
 - `aria-current="page"` no item ativo do menu e `aria-label` nos dois `nav`.
 - `role="status"` na mensagem de retorno do formulário.
 - `prefers-reduced-motion` respeitado.
+- Link "Pular para o conteúdo" como primeiro item da ordem do Tab, visível só ao
+  receber foco. O clique leva o foco ao `<main>` sem alterar a rota da SPA
+  (WCAG 2.4.1).
+- Toasts param a contagem para sumir enquanto o ponteiro ou o foco estão sobre eles
+  (WCAG 2.2.1).
+
+### Landmarks e WAI-ARIA
+
+| Recurso | Onde | Função |
+|---|---|---|
+| `header`, `nav`, `main`, `footer` | Casca da SPA e `componentes.html` | Marcos de navegação para leitores de tela |
+| `aria-label` nos dois `nav` | "Navegação principal" e "Links do rodapé" | Diferencia os dois menus na lista de marcos |
+| `aria-expanded` + `aria-controls` | Botão do menu no celular | Anuncia se o painel está aberto e qual lista ele controla |
+| `aria-current="page"` | Item do menu da página atual | Indica a página em que a pessoa está |
+| `aria-hidden="true"` | Ícone do botão do menu | Esconde o desenho das três barras do leitor de tela |
+| `aria-invalid` + `aria-describedby` | Campos do formulário com erro | Anuncia o erro e lê a mensagem ligada ao campo |
+| `aria-describedby` | Botão "Enviar cadastro" | Explica por que o botão está desabilitado |
+| `role="status"` / `aria-live="polite"` | Retorno do envio, toasts e histórico | Anuncia mensagens sem tirar o foco |
+| `<dialog>` + `aria-labelledby` | Modal de confirmação | Prende o foco, fecha com Esc e tem nome acessível |
+| `aria-label` | Botões "×" de fechar | Dá nome a botões que só têm um símbolo |
+| `tabindex="-1"` + foco no `h1` | Troca de rota da SPA | Avisa a mudança de página a quem usa teclado ou leitor de tela |
+
+### Verificação automática
+
+As cinco telas (início, projetos, cadastro, página não encontrada e guia de
+componentes) e o formulário com erros foram verificados com o
+[axe-core](https://github.com/dequelabs/axe-core) nas regras WCAG 2.0/2.1 níveis A e
+AA, sem nenhuma violação. No formulário com erros, o axe não conseguiu calcular o
+contraste de 7 elementos por causa do fundo com ícone; esses valores foram
+conferidos manualmente (tabela de contraste acima).
 
 ## Como executar
 
