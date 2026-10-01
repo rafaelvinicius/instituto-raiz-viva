@@ -14,6 +14,20 @@ educação ambiental, desenvolvida na disciplina de Desenvolvimento Front-End:
 Cada entrega é uma versão marcada com tag. A lista completa está em [Versões](#versões),
 e o fluxo de trabalho do repositório em [Fluxo de trabalho com GitFlow](#fluxo-de-trabalho-com-gitflow).
 
+## Tecnologias utilizadas
+
+| Tecnologia | Uso no projeto |
+|---|---|
+| HTML5 | Estrutura semântica das páginas e do formulário |
+| CSS3 | Design system em variáveis, layout com Grid e Flexbox, mobile first |
+| JavaScript (ES Modules) | SPA com roteamento por hash, templates, validação e localStorage, sem frameworks |
+| [Day.js](https://day.js.org) 1.11.23 (CDN jsDelivr) | Cálculo de idade e tempo relativo |
+| API [ViaCEP](https://viacep.com.br) | Preenchimento automático do endereço pelo CEP |
+| Google Fonts | Fontes Fraunces e Public Sans |
+| Node.js (`node:test`) | Testes automatizados, sem dependências instaladas |
+| Git e GitHub | Versionamento com GitFlow, issues, milestones e pull requests |
+| GitHub Pages | Hospedagem da versão publicada |
+
 ## Estrutura de diretórios
 
 ```
@@ -463,19 +477,36 @@ servido em 112x112 para telas de alta densidade, embora exibido em 56x56.
 
 Versão publicada: https://rafaelvinicius.github.io/instituto-raiz-viva/ (abre em `/html/`)
 
-Localmente, é preciso um servidor HTTP, porque os navegadores bloqueiam módulos ES
-abertos direto do disco (`file://`). Qualquer uma destas opções funciona, na pasta
-do projeto:
+### Pré-requisitos
+
+- [Git](https://git-scm.com/), para clonar o repositório;
+- um navegador atualizado (Chrome, Firefox, Edge ou Safari);
+- um servidor HTTP local: [Node.js](https://nodejs.org/) 18 ou superior (que também
+  roda os testes) **ou** Python 3;
+- conexão com a internet para as fontes, o Day.js e a consulta de CEP. Sem ela, o
+  site funciona com fontes do sistema, datas nativas e endereço digitado à mão.
+
+### Instalação local
+
+O projeto não tem dependências para instalar (não há `package.json` nem `npm install`).
 
 ```bash
+# 1. clonar o repositório e entrar na pasta
+git clone https://github.com/rafaelvinicius/instituto-raiz-viva.git
+cd instituto-raiz-viva
+
+# 2. subir um servidor HTTP na pasta do projeto (escolha uma opção)
 npx serve .
 # ou
 python3 -m http.server 8000
+
+# 3. abrir no navegador o endereço exibido no terminal
+#    (com Python: http://localhost:8000)
 ```
 
-No VS Code, a extensão Live Server também resolve. Não há etapa de build.
-A consulta de CEP exige conexão com a internet; sem ela, o endereço é preenchido
-manualmente sem quebrar o formulário.
+O servidor é necessário porque os navegadores bloqueiam módulos ES abertos direto do
+disco (`file://`). No VS Code, a extensão Live Server também resolve. Por enquanto não
+há etapa de build: os arquivos são servidos como estão.
 
 ## Testes
 
