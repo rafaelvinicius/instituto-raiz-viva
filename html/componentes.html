@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
   <meta name="description" content="Guia dos componentes visuais da plataforma do Instituto Raiz Viva: etiquetas, alertas, toasts e modal.">
   <meta name="robots" content="noindex">
   <meta name="author" content="Instituto Raiz Viva">
@@ -11,11 +12,25 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&amp;family=Public+Sans:wght@400;500;700&amp;display=swap">
+  <!-- Aplica o tema salvo (claro/escuro) antes da primeira pintura.
+       Fica fora dos módulos porque eles só rodam depois do HTML lido. -->
+  <script>
+    try {
+      var tema = JSON.parse(localStorage.getItem('raizviva:tema'));
+      if (tema === 'claro' || tema === 'escuro') {
+        document.documentElement.dataset.tema = tema;
+      }
+    } catch (erro) {}
+  </script>
   <link rel="stylesheet" href="../css/style.css">
   <!-- Cabeçalho e rodapé vêm dos mesmos componentes da SPA -->
   <script type="module" src="../js/guia.js"></script>
 </head>
 <body>
+
+  <!-- Primeiro item da ordem do Tab: permite pular o cabeçalho e o menu
+       e ir direto ao conteúdo (WCAG 2.4.1 — Ignorar blocos). -->
+  <a class="pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
 
   <header class="cabecalho" id="cabecalho">
     <div class="cabecalho__marca">
@@ -27,7 +42,7 @@
     </div>
   </header>
 
-  <main id="conteudo">
+  <main id="conteudo" tabindex="-1">
 
     <section class="intro">
       <h2>Como usar</h2>
