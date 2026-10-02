@@ -5,7 +5,10 @@
 import { escapar, renderizarLista } from '../utils/html.js';
 import { caminhoPara } from '../roteador.js';
 import { navegacao } from '../dados/navegacao.js';
-import { PASTA_IMAGENS } from '../config.js';
+// new URL(..., import.meta.url) aponta para o mesmo arquivo usado no HTML.
+// No build, o Vite troca pelo nome com hash; sem build, o navegador resolve
+// o caminho relativo ao próprio módulo.
+const LOGO = new URL('../../imagens/logo-raiz-viva.png', import.meta.url).href;
 
 const subitemMenu = (rota, base) => (subitem) => `
   <li><a href="${caminhoPara(rota, subitem.ancora, base)}">${escapar(subitem.rotulo)}</a></li>`;
@@ -40,7 +43,7 @@ export const cabecalho = ({ titulo, lema, rotaAtual = null, base = '', temaEscur
   </div>
 
   <div class="cabecalho__marca">
-    <img src="${PASTA_IMAGENS}/logo-raiz-viva.png" alt="Instituto Raiz Viva" width="56" height="56">
+    <img src="${LOGO}" alt="Instituto Raiz Viva" width="56" height="56">
     <div>
       <h1 tabindex="-1">${escapar(titulo)}</h1>
       <p class="cabecalho__lema">${escapar(lema)}</p>
